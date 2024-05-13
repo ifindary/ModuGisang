@@ -7,23 +7,14 @@ export const CARD_TYPES = {
 
 export const CARD_STYLES = {
   streak: {
-    bgColor: 'purple',
-    color: 'light',
+    isBold: true,
+    lineColor: 'gradient',
   },
   challenge: {
-    bgColor: 'light',
-    color: 'light',
+    isBold: true,
+    lineColor: 'purple',
   },
-  invitations: {
-    bgColor: 'purple',
-    color: 'light',
-  },
-  create: {
-    bgColor: 'emerald',
-    color: 'dark',
-  },
-  enter: {
-    bgColor: 'emerald',
-    color: 'dark',
-  },
+  invitations: { isBold: true, lineColor: 'purple' },
+  create: { isBold: true, lineColor: 'gradient' },
+  enter: { isBold: true, lineColor: 'gradient' },
 };

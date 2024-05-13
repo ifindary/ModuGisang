@@ -47,10 +47,12 @@ export default Timer;
 
 const Wrapper = styled.div`
   ${({ theme }) => theme.flex.center}
-  font: 700 50px 'Jua';
+  ${({ theme }) => theme.fonts.JuaMedium}
+  color: ${({ theme }) => theme.colors.primary.emerald};
+  margin-bottom: -3px;
 `;
 
 const TimerText = styled.div`
-  width: 70px;
+  width: 60px;
   text-align: center;
 `;

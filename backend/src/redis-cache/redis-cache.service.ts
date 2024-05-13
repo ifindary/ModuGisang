@@ -1,6 +1,4 @@
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 
@@ -25,21 +23,24 @@ export class RedisCacheService {
     await this.redis.set(key, currentTime);
     return `current time: ${currentTime}`;
   }
+
+  async expire(key: string, ttl: number): Promise<number> {
+    return await this.redis.expire(key, ttl);
+  }
   async del(key: string): Promise<number> {
     return await this.redis.del(key);
   }
 
-  // async get(key: string): Promise<any> {
-  // 	return this.cacheManager.get(key);
-  // }
+  async zadd(key: string, score: number, member: string): Promise<number> {
+    return await this.redis.zadd(key, score, member);
+  }
 
-  // async set(key: string, value: any, ttl?: number): Promise<'OK' | void> {
-  // 	console.log(`Setting TTL for ${key} to ${ttl ?? 100} seconds.`);
-  // 	return await this.cacheManager.set(key, value, 100);
-  // }
-
-  // async del(key: string): Promise<number | void> {
-  // 	return this.cacheManager.del(key);
-  // }
+  async zrevrange(
+    groupKey: string,
+    start: number,
+    stop: number,
+  ): Promise<string[]> {
+    return await this.redis.zrevrange(groupKey, start, stop, 'WITHSCORES');
+  }
 }
 export default RedisCacheService;

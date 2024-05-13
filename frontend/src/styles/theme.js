@@ -37,7 +37,7 @@ const fonts = {
     letter-spacing: -2%;
   `,
   JuaSmall: css`
-    font: 24px 'Jua';
+    font: 23px 'Jua';
     line-height: 30px;
     letter-spacing: -2.5%;
   `,
@@ -47,13 +47,13 @@ const fonts = {
     letter-spacing: -2.5%;
   `,
   IBMmedium: css`
-    font: 28px 'IBM Plex Sans KR';
-    line-height: 24px;
+    font: 18px 'IBM Plex Sans KR';
+    line-height: 0px;
     letter-spacing: -2.5%;
   `,
   IBMsmall: css`
     font: 16px 'IBM Plex Sans KR';
-    line-height: 22px;
+    line-height: 18px;
     letter-spacing: -2.5%;
   `,
   warning: css`
@@ -100,28 +100,11 @@ const boxShadow = css`
 `;
 
 const gradient = {
-  background: {
-    largerPurple: css`
-      background: linear-gradient(0.9turn, #836fff, #15f5ba);
-    `,
-    largerEmerald: css`
-      background: linear-gradient(135deg, #836fff, #15f5ba);
-    `,
-    onlyEmerald: css`
-      background: linear-gradient(180deg, #ebebeb, #15f5ba);
-    `,
-    translucentGray: css`
-      background: linear-gradient(
-        30deg,
-        rgba(0, 0, 0, 0.05),
-        rgba(255, 255, 255, 0.05)
-      );
-    `,
-  },
-  border: css`
-    border: 1px solid transparent;
-    border-image: linear-gradient(135deg, #836fff, #15f5ba) 1;
-  `,
+  largerPurple: 'linear-gradient(160deg, #836fff, #15f5ba)',
+  largerEmerald: 'linear-gradient(135deg, #836fff, #15f5ba)',
+  onlyEmerald: 'linear-gradient(180deg, #ebebeb, #15f5ba)',
+  translucentGray:
+    'linear-gradient(30deg, rbga(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05))',
 };
 
 const theme = {

@@ -47,7 +47,6 @@ const MateVideo = ({ mateId, mateName }) => {
 
   return (
     <Wrapper $mateOnLine={mateStatus.online}>
-      {/* <StatusIcon $isCompleted={mateStatus.missionCompleted} /> */}
       {mateStatus.online ? (
         <Video
           ref={mateVideoRef}
@@ -99,17 +98,6 @@ const Video = styled.video`
     $isCompleted
       ? `2px solid ${theme.colors.primary.emerald}`
       : `2px solid ${theme.colors.system.red}`};
-`;
-
-const StatusIcon = styled.div`
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: ${({ $isCompleted, theme }) =>
-    $isCompleted ? theme.colors.system.green : theme.colors.system.red};
 `;
 
 const UserName = styled.span`

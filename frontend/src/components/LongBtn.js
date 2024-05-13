@@ -2,7 +2,17 @@ import React from 'react';
 import styled from 'styled-components';
 
 const LongBtn = ({ btnName, onClickHandler }) => {
-  return <Wrapper onClick={onClickHandler}>{btnName}</Wrapper>;
+  return (
+    <Wrapper
+      onClick={e => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClickHandler(e);
+      }}
+    >
+      {btnName}
+    </Wrapper>
+  );
 };
 
 export default LongBtn;

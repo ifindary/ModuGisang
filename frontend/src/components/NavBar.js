@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { UserContext } from '../contexts';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Icon } from '../components';
-import styled from 'styled-components';
+import { RoundBtn } from '../components';
+import styled, { css } from 'styled-components';
 
 const NavBar = () => {
+  const { userData } = useContext(UserContext);
+  const { userName } = userData;
   const { pathname } = useLocation();
   const params = useParams();
   const navigate = useNavigate();
@@ -12,7 +15,12 @@ const NavBar = () => {
   const [pageType, setPageType] = useState('main');
 
   const TITLE_BY_PAGE_TYPE = {
-    main: '모두기상',
+    main: (
+      <>
+        <p>오늘도 기적같은 하루!</p>
+        <p>안녕하세요 {userName}님 :)</p>
+      </>
+    ),
     myStreak: '나의 기록',
     joinChallenge: '챌린지 참여',
     createChallenge: '챌린지 만들기',
@@ -33,15 +41,12 @@ const NavBar = () => {
     if (page) {
       setPageType(page);
 
-      if (page === 'settings') {
-        setHasLeftBtn(true);
-        setHasRightBtn(false);
-      } else if (page === 'main') {
+      if (page === 'main') {
         setHasLeftBtn(false);
         setHasRightBtn(true);
       } else {
         setHasLeftBtn(true);
-        setHasRightBtn(true);
+        setHasRightBtn(false);
       }
     } else {
       setHasLeftBtn(false);
@@ -50,22 +55,16 @@ const NavBar = () => {
   }, [params]);
 
   return (
-    <Wrapper>
-      <BtnArea $hasRightBtn={hasRightBtn}>
-        {hasLeftBtn && (
-          <Icon icon="back" iconStyle={BackBtnStyle} onClickHandler={goBack} />
-        )}
-        <Title $hasRightBtn={hasRightBtn} $hasLeftBtn={hasLeftBtn}>
-          {TITLE_BY_PAGE_TYPE[pageType]}
-        </Title>
-        {hasRightBtn && (
-          <Icon
-            icon="settings"
-            iconStyle={SettingsBtnStyle}
-            onClickHandler={goToSettings}
-          />
-        )}
-      </BtnArea>
+    <Wrapper $hasLeftBtn={hasLeftBtn} $hasRightBtn={hasRightBtn}>
+      {hasLeftBtn && (
+        <RoundBtn btnStyle={BACK_BTN_STYLE} onClickHandler={goBack} />
+      )}
+
+      <Title $hasLeftBtn={hasLeftBtn}>{TITLE_BY_PAGE_TYPE[pageType]}</Title>
+
+      {hasRightBtn && (
+        <RoundBtn btnStyle={SETTINGS_BTN_STYLE} onClickHandler={goToSettings} />
+      )}
     </Wrapper>
   );
 };
@@ -76,43 +75,52 @@ const Wrapper = styled.nav`
   position: fixed;
   top: 0;
 
-  ${({ theme }) => theme.flex.between}
+  display: grid;
+  grid-template-columns: ${({ $hasLeftBtn, $hasRightBtn }) =>
+    $hasLeftBtn && $hasRightBtn
+      ? '40px auto 40px'
+      : $hasLeftBtn && !$hasRightBtn
+        ? '40px auto'
+        : 'auto 40px'};
   align-items: center;
 
   width: 100vw;
-  height: 50px;
-
-  background-color: ${({ theme }) => theme.colors.translucent.white};
+  height: 100px;
+  padding: 0 24px;
 `;
 
-const BtnArea = styled.div`
-  position: fixed;
-  top: 0;
+const Title = styled.header`
+  justify-self: ${({ $hasLeftBtn }) => ($hasLeftBtn ? 'center' : 'flex-start')};
+  margin-left: ${({ $hasLeftBtn }) => $hasLeftBtn && '-40px'};
+  margin-bottom: -8px;
 
-  width: 100vw;
-  height: 50px;
-  padding: 0 20px;
-  ${({ theme, $hasRightBtn }) =>
-    $hasRightBtn ? theme.flex.between : theme.flex.right}
+  ${({ theme }) => theme.fonts.JuaSmall}
+
+  background: ${({ theme }) => theme.gradient.largerEmerald};
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
 `;
 
-const Title = styled.h2`
-  ${({ theme }) => theme.fonts.JuaMedium}
-
-  width: 100vw;
-  height: 50px;
-  margin-left: ${({ $hasRightBtn }) => ($hasRightBtn ? '0' : '-35px')};
-  margin-right: ${({ $hasLeftBtn }) => ($hasLeftBtn ? '0' : '-35px')};
-  ${({ theme }) => theme.flex.center}
-  flex-direction: column;
-`;
-
-const BackBtnStyle = {
-  size: 24,
-  hoverColor: 'purple',
+const BACK_BTN_STYLE = {
+  size: 40,
+  disabled: false,
+  icon: 'back',
+  iconStyle: {
+    size: 20,
+    color: 'white',
+    hoverColor: 'purple',
+  },
 };
 
-const SettingsBtnStyle = {
-  size: 24,
-  hoverColor: 'purple',
+const SETTINGS_BTN_STYLE = {
+  size: 40,
+  disabled: false,
+  icon: 'settings',
+  iconStyle: {
+    size: 20,
+    color: 'white',
+    hoverColor: 'purple',
+  },
 };

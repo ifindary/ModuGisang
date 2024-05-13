@@ -2,8 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
-  HttpException,
   HttpStatus,
   Post,
   Req,
@@ -21,7 +19,6 @@ import { UserService } from 'src/users/users.service';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtRefreshGuard } from './jwt-refresh.guard';
 import * as argon2 from 'argon2';
-import RedisCacheService from 'src/redis-cache/redis-cache.service';
 
 @Controller('api/auth')
 export class AuthController {

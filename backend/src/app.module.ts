@@ -12,6 +12,7 @@ import { AttendanceModule } from './attendance/attendance.module';
 import { RedisAppModule } from './redis-cache/redis-cache.module';
 import { DatabaseModule } from './database/database.module';
 import { EmailModule } from './email/email.module';
+import { InGameModule } from './in-game/in-game.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { EmailModule } from './email/email.module';
     AttendanceModule,
     DatabaseModule,
     EmailModule,
+    InGameModule,
   ],
   controllers: [AppController],
   providers: [AppService],

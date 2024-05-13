@@ -7,6 +7,7 @@ import {
   OutlineBox,
   WarmUpModel,
   LoadingWithText,
+  LongBtn,
 } from '../../components';
 import {
   StreakContent,
@@ -15,7 +16,7 @@ import {
   ChallengeContent,
   EnterContent,
 } from './cardComponents';
-import { GREETINGS, CARD_TYPES, CARD_STYLES } from './DATA';
+import { CARD_TYPES, CARD_STYLES } from './DATA';
 
 import styled from 'styled-components';
 import * as S from '../../styles/common';
@@ -25,8 +26,7 @@ const Main = () => {
 
   // setUserData는 Test용으로 사용하는 함수
   const { accessToken, userId } = useContext(AccountContext);
-  const { userData, challengeId, getUserData } = useContext(UserContext);
-  const { userName } = userData;
+  const { challengeId, getUserData } = useContext(UserContext);
   const { challengeData, setChallengeData } = useContext(ChallengeContext);
   const { isTooEarly, isTooLate } = useCheckTime(challengeData?.wakeTime);
 
@@ -35,8 +35,6 @@ const Main = () => {
   const hasChallenge = Number(challengeId) !== -1;
   const [isUserDataLoading, setIsUserDataLoading] = useState(true);
   const [isChallengeInfoLoading, setIsChallengeInfoLoading] = useState(true);
-
-  const greetings = GREETINGS[0] + userName + GREETINGS[1];
 
   const CARD_CONTENTS = {
     streak: <StreakContent />,
@@ -91,7 +89,6 @@ const Main = () => {
     }
   }, [challengeData]);
 
-  console.log('🍀🍀🍀 MAIN PAGE 🍀🍀🍀🍀\n');
   console.log(
     'userId: ',
     userId,
@@ -111,27 +108,18 @@ const Main = () => {
         <>
           <NavBar />
           <S.PageWrapper>
-            <Greetings>{greetings}</Greetings>
             <input
               placeholder="00:00 형태로 입력"
               type="text"
               onChange={e => setWakeTime(e.target.value)}
               style={{
+                marginTop: '20px',
                 backgroundColor: 'white',
-                padding: '10px',
+                padding: '15px',
                 borderRadius: '5px',
               }}
             />
-            <button
-              onClick={changeWakeTime}
-              style={{
-                backgroundColor: 'orange',
-                padding: '10px',
-                borderRadius: '5px',
-              }}
-            >
-              기상 시간 세팅하기
-            </button>
+            <LongBtn onClickHandler={changeWakeTime} btnName="기상시간 세팅" />
 
             <CardsWrapper>
               {CARD_TYPES[hasChallenge ? 'hasChallenge' : 'noChallenge'].map(
@@ -140,7 +128,7 @@ const Main = () => {
                     key={type}
                     content={CARD_CONTENTS[type]}
                     onClickHandler={CARD_ON_CLICK_HANDLERS[type]}
-                    btnStyle={CARD_STYLES[type]}
+                    boxStyle={CARD_STYLES[type]}
                   />
                 ),
               )}
@@ -158,13 +146,9 @@ const Main = () => {
 
 export default Main;
 
-const Greetings = styled.h6`
-  ${({ theme }) => theme.fonts.JuaSmall}
-  padding: 20px 0;
-`;
-
 const CardsWrapper = styled.div`
+  width: 100%;
   ${({ theme }) => theme.flex.center}
   flex-direction: column;
-  gap: 10px;
+  gap: 33px;
 `;

@@ -4,7 +4,7 @@ import styled, { css } from 'styled-components';
 
 const btnStyleSample = {
   size: 24,
-  disable: false,
+  disabled: false,
   icon: 'back',
   iconStyle: {
     size: 24,
@@ -28,7 +28,9 @@ const RoundBtn = ({ btnStyle, onClickHandler }) => {
         }
       }}
     >
-      <Icon icon={icon} iconStyle={iconStyle} />
+      <IconWrapper>
+        <Icon icon={icon} iconStyle={iconStyle} />
+      </IconWrapper>
     </Wrapper>
   );
 };
@@ -36,16 +38,18 @@ const RoundBtn = ({ btnStyle, onClickHandler }) => {
 export default RoundBtn;
 
 const Wrapper = styled.button`
-  width: 50px;
-  height: 50px;
+  ${({ theme }) => theme.flex.center}
+
+  width: ${({ $btnStyle }) => $btnStyle.size || 50}px;
+  height: ${({ $btnStyle }) => $btnStyle.size || 50}px;
+
   border-radius: 50%;
+
   background-color: ${({ theme }) => theme.colors.translucent.white};
 
-  cursor: ${({ $iconStyle }) => ($iconStyle.disable ? 'default' : 'pointer')};
+  cursor: ${({ $btnStyle }) => ($btnStyle.disabled ? 'default' : 'pointer')};
+`;
 
-  ${({ $iconStyle }) =>
-    $iconStyle.disable &&
-    css`
-      pointer-events: none;
-    `}
+const IconWrapper = styled.div`
+  margin-bottom: -2px;
 `;

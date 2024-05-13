@@ -56,6 +56,10 @@ export default StreakContent;
 
 const Wrapper = styled.div`
   ${({ theme }) => theme.flex.between}
+  width: 100%;
+  height: 120px;
+
+  padding: 24px;
 `;
 
 const LevelIcon = styled.img`

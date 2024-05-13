@@ -8,7 +8,7 @@ const MissionTitle = ({ text }) => {
 export default MissionTitle;
 
 const Wrapper = styled.div`
-  ${({ theme }) => theme.fonts.JuaMedium}
+  ${({ theme }) => theme.fonts.JuaSmall}
+  color: ${({ theme }) => theme.colors.primary.emerald};
   text-align: center;
-  font-size: 30px;
 `;

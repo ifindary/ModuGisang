@@ -1,10 +1,11 @@
-import { Injectable, UnauthorizedException, flatten } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Users } from './entities/users.entity';
 import * as argon2 from 'argon2';
 import { Repository } from 'typeorm';
 import { UserDto } from 'src/auth/dto/user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import { Streak } from './entities/streak.entity';
 // import { refreshJwtConstants } from 'src/auth/constants';
 
 @Injectable()
@@ -12,9 +13,12 @@ export class UserService {
   constructor(
     @InjectRepository(Users)
     private userRepository: Repository<Users>,
+    @InjectRepository(Streak)
+    private streakRepository: Repository<Streak>,
     private configService: ConfigService,
   ) {
     this.userRepository = userRepository;
+    this.streakRepository = streakRepository;
   }
 
   async createUser(
@@ -140,5 +144,44 @@ export class UserService {
       invitations: invitations,
       count: count,
     };
+  }
+
+  async setStreak(userId: number) {
+    const today = new Date();
+    const streak = await this.getStreak(userId);
+    const oneDayInMs = 1000 * 60 * 60 * 24;
+
+    if (streak) {
+      // streak가 있을 때
+      const diffDays = Math.floor(
+        (today.getTime() - streak.lastActiveDate.getTime()) / oneDayInMs,
+      );
+      if (diffDays == 1) {
+        streak.currentStreak = streak.currentStreak + 1;
+      } else {
+        streak.currentStreak = 1;
+      }
+      streak.lastActiveDate = today;
+    } else {
+      // streak가 없을 때
+      const newStreak = new Streak();
+      newStreak.userId = userId;
+      newStreak.lastActiveDate = today;
+      newStreak.currentStreak = 1;
+      return await this.streakRepository.save(newStreak);
+    }
+    return await this.streakRepository.save(streak);
+  }
+
+  async getStreak(userId: number) {
+    try {
+      const getStreak = await this.streakRepository.findOne({
+        where: { userId: userId },
+      });
+
+      return getStreak;
+    } catch (e) {
+      console.log('getStreak error', e);
+    }
   }
 }

@@ -27,21 +27,18 @@ export default ChallengeContent;
 
 const Wrapper = styled.div`
   ${({ theme }) => theme.flex.between}
+  padding: 20px;
 `;
 
 const RightArea = styled.div`
   ${({ theme }) => theme.flex.left}
   flex-direction: column;
+  gap: 5px;
 `;
 
 const LeftArea = styled.div`
   ${({ theme }) => theme.flex.right}
   flex-direction: column;
-`;
-
-const OneLineWrapper = styled.div`
-  ${({ theme }) => theme.flex.center};
-  gap: 5px;
 `;
 
 const BigLetter = styled.span`

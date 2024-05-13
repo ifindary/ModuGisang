@@ -26,9 +26,9 @@ export class AuthService {
   }
   // 토큰 Payload에 해당하는 아아디의 유저 가져오기
   async tokenValidateUser(payload: Payload): Promise<UserDto | undefined> {
-    const user = await this.userService.findOneByID(payload.id);
+    const user = await this.userService.findOneByID(payload._id);
     if (!user) {
-      console.log('No user found with ID:', payload.id);
+      console.log('No user found with ID:', payload._id);
       throw new UnauthorizedException('User does not exist');
     }
     return user;
