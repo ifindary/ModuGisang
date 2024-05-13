@@ -6,8 +6,8 @@ import {
   NavBar,
   OutlineBox,
   WarmUpModel,
-  LoadingWithText,
   LongBtn,
+  ProgressBar,
 } from '../../components';
 import {
   StreakContent,
@@ -99,11 +99,13 @@ const Main = () => {
   );
 
   if (!userId || !challengeData)
-    return <LoadingWithText loadingMSG="페이지를 가져오고 있어요" />;
+    return (
+      <ProgressBar isLoading={true} loadingMSG="페이지를 가져오고 있어요" />
+    );
   return (
     <>
       {!isWarmUpDone ? (
-        <LoadingWithText loadingMSG="페이지를 가져오고 있어요" />
+        <ProgressBar isLoading={true} loadingMSG="페이지를 가져오고 있어요" />
       ) : (
         <>
           <NavBar />

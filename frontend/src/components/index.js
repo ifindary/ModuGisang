@@ -10,6 +10,7 @@ import PageNotFound from './PageNotFound';
 import LoadingWithText from './LoadingWithText';
 import Dropdown from './Dropdown';
 import WarmUpModel from './WarmUpModel';
+import ProgressBar from './ProgressBar';
 
 export {
   Icon,
@@ -24,4 +25,5 @@ export {
   LoadingWithText,
   Dropdown,
   WarmUpModel,
+  ProgressBar,
 };

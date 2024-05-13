@@ -1,6 +1,11 @@
 import React from 'react';
 import { useState } from 'react';
-import { InputBox, LoadingWithText, LongBtn } from '../../components';
+import {
+  InputBox,
+  LoadingWithText,
+  LongBtn,
+  ProgressBar,
+} from '../../components';
 
 import useAuth from '../../hooks/useAuth';
 
@@ -24,7 +29,8 @@ const Signin = () => {
   };
 
   if (isLoginLoading) {
-    return <LoadingWithText loadingMSG="로그인 중입니다 :)" />;
+    return <ProgressBar></ProgressBar>;
+    // return <LoadingWithText loadingMSG="로그인 중입니다 :)" />;
   }
 
   return (
