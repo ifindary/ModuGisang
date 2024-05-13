@@ -41,7 +41,7 @@ export const estimateHead = ({ results, myVideoRef, canvasRef, direction }) => {
     // 정해진 시간이 지나면 타임아웃
     const handleTimeout = () => {
       isTimeOut = true;
-      console.log('---------- 제한 시간 종료!');
+      // console.log('---------- 제한 시간 종료!');
     };
 
     // 1. 얼굴을 top, bottom, left, right 중 어느 쪽으로 돌려야 할지 미리 정한다.
@@ -61,7 +61,7 @@ export const estimateHead = ({ results, myVideoRef, canvasRef, direction }) => {
 
       // 10초 타이머 설정
       setTimeout(handleTimeout, timeoutDuration);
-      console.log('------ 카운트 다운 시작');
+      // console.log('------ 카운트 다운 시작');
     }
 
     // 2. N초 동안 얼굴을 해당 방향으로 돌렸는지 확인한다.
@@ -78,7 +78,7 @@ export const estimateHead = ({ results, myVideoRef, canvasRef, direction }) => {
       ) {
         currentStatus = 'top';
         isCentered = false;
-        console.log('------------ ', currentStatus);
+        // console.log('------------ ', currentStatus);
       } else if (
         nose.x < leftEar.x &&
         nose.x > rightEar.x &&
@@ -87,7 +87,7 @@ export const estimateHead = ({ results, myVideoRef, canvasRef, direction }) => {
       ) {
         currentStatus = 'bottom';
         isCentered = false;
-        console.log('------------ ', currentStatus);
+        // console.log('------------ ', currentStatus);
       } else if (
         nose.x > leftEar.x &&
         nose.x > rightEar.x &&
@@ -96,7 +96,7 @@ export const estimateHead = ({ results, myVideoRef, canvasRef, direction }) => {
       ) {
         currentStatus = 'right';
         isCentered = false;
-        console.log('------------ ', currentStatus);
+        // console.log('------------ ', currentStatus);
       } else if (
         nose.x < leftEar.x &&
         nose.x < rightEar.x &&
@@ -105,7 +105,7 @@ export const estimateHead = ({ results, myVideoRef, canvasRef, direction }) => {
       ) {
         currentStatus = 'left';
         isCentered = false;
-        console.log('------------ ', currentStatus);
+        // console.log('------------ ', currentStatus);
       } else if (
         nose.x < leftEar.x &&
         nose.x > rightEar.x &&
