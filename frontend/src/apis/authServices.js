@@ -17,8 +17,8 @@ const logInUser = async ({ email, password }) => {
   return await API.post(url, payload);
 };
 
-const logOutUser = async ({ accessToken }) => {
-  const url = '/auth/logout';
+const logOutUser = async ({ accessToken, userId }) => {
+  const url = `/auth/logout/${userId}`;
   const config = {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -45,7 +45,7 @@ const verifyAuthCode = async ({ verifyCode, email }) => {
 };
 
 const signUpUser = async ({ email, password, userName }) => {
-  const url = '/user/signUp';
+  const url = '/user/sign-up';
   const payload = {
     email: email,
     password: password,
