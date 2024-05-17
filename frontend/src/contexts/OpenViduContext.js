@@ -135,7 +135,7 @@ const OpenViduContextProvider = ({ children }) => {
         videoSource: undefined,
         publishAudio: true,
         publishVideo: true,
-        resolution: '340*480',
+        resolution: '340x480',
         frameRate: 30,
         mirror: true,
       });
