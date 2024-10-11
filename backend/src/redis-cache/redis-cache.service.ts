@@ -37,6 +37,7 @@ export class RedisCacheService {
   async expire(key: string, ttl: number): Promise<number> {
     return await this.redis.expire(key, ttl);
   }
+
   async del(key: string): Promise<number> {
     return await this.redis.del(key);
   }

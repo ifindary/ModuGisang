@@ -220,6 +220,7 @@ export class UserService {
       console.log('getStreak error', e);
     }
   }
+
   getCurrentTime() {
     const today = new Date();
     const koreaOffset = 9 * 60; // KST는 UTC+9
@@ -237,6 +238,7 @@ export class UserService {
     const diffDays = this.getDayDifference(today, lastActiveDate);
     return !(diffDays > 1);
   }
+
   getDayDifference(today: Date, lastActiveDate: Date): number {
     const oneDayInMs = 1000 * 60 * 60 * 24;
     return Math.floor(
@@ -265,6 +267,7 @@ export class UserService {
     console.log('redis에 유저 정보가 있습니다.');
     return JSON.parse(user);
   }
+
   async redisSetUser(userId: number, userInformation: any) {
     const state = await this.redisService.set(
       `userInfo:${userId}`,
@@ -278,46 +281,51 @@ export class UserService {
     }
   }
 
-  async deleteUser(userId: number) {
-    const user = await this.userRepository.findOne({ where: { _id: userId } });
+  async verifyUserPassword(user: Users, password: string) {
+    const isPasswordMatching = await argon2.verify(user.password, password);
+    return isPasswordMatching;
+  }
+
+  async deleteUser(user: Users) {
+    const userId = user._id;
     const challengeId = user.challengeId;
     const challenge = await this.challengeRepository.findOne({
       where: { _id: challengeId },
     });
 
-    // 삭제될 유저가 호스트일 때만 진행
-    if (userId === challenge.hostId) {
-      // 현재 챌린지의 호스트일 때 다른 사용자에게 위임
-      let inChallengeUsers = await this.userRepository.find({
-        where: { challengeId: challengeId },
-      });
+    // 챌린지에 참여중인 경우
+    if (challengeId !== -1) {
+      // 삭제될 유저가 호스트일 때
+      if (userId === challenge.hostId) {
+        let inChallengeUsers = await this.userRepository.find({
+          where: { challengeId: challengeId },
+        });
 
-      // 삭제될 사용자 제외 후 새로운 유저에서 뽑기
-      inChallengeUsers = inChallengeUsers.filter(
-        (challengeUser) => challengeUser._id !== userId,
-      );
-      // 삭제될 유저가 챌린지를 혼자 참여할 경우에는 진행 X
-      if (inChallengeUsers.length > 0) {
-        const randomIndex = Math.floor(Math.random() * inChallengeUsers.length);
-        challenge.hostId = inChallengeUsers[randomIndex]._id;
-        await this.challengeRepository.save(challenge);
+        inChallengeUsers = inChallengeUsers.filter(
+          (challengeUser) => challengeUser._id !== userId,
+        );
+
+        // 삭제될 사용자 제외한 챌린지 참여자가 있을 때
+        if (inChallengeUsers.length > 0) {
+          const randomIndex = Math.floor(
+            Math.random() * inChallengeUsers.length,
+          );
+          challenge.hostId = inChallengeUsers[randomIndex]._id;
+          await this.challengeRepository.save(challenge);
+        }
       }
+
+      // 삭제될 사용자는 챌린지에서 빠짐
+      user.challengeId = -1;
+      await this.userRepository.save(user);
     }
 
-    // 삭제될 사용자는 챌린지에서 빠짐
-    user.challengeId = -1;
-    await this.userRepository.save(user);
+    // 챌린지 정보 캐시 삭제
+    await this.redisService.del(`userInfo:${userId}`);
+    await this.redisService.del(`challenge_${challengeId}`);
 
     // 유저 소프트 삭제
     const result = await this.userRepository.softDelete({ _id: userId });
-
-    // 챌린지 정보 캐시 삭제
-    const cacheKey = `challenge_${challengeId}`;
-    await this.redisService.del(cacheKey);
-
-    if (result.affected === 0) {
-      throw new NotFoundException('해당 이메일을 가진 유저는 없습니다.');
-    }
     return result.affected;
   }
 
@@ -364,39 +372,44 @@ export class UserService {
   }
 
   async changePassword(userId: number, newPassword: string) {
-    if (checkPW(newPassword)) {
-      const hashedPassword = await argon2.hash(newPassword);
+    const hashedPassword = await argon2.hash(newPassword);
+    const updatedPassword = await this.userRepository.update(userId, {
+      password: hashedPassword,
+    });
+    return updatedPassword.affected === 1;
+  }
 
-      return await this.userRepository.update(userId, {
-        password: hashedPassword,
-      });
-    } else {
-      throw new BadRequestException('비밀번호 양식이 틀렸습니다');
+  checkPWformat(pw: string): any {
+    // 최소 8자 이상
+    if (pw.length < 8) {
+      return { success: false, message: '비밀번호는 8자 이상이어야 합니다.' };
     }
-  }
-}
 
-function checkPW(pw: string): boolean {
-  // 최소 8자 이상
-  if (pw.length < 8) {
-    return false;
-  }
+    // 영문 포함
+    if (!/[a-zA-Z]/.test(pw)) {
+      return {
+        success: false,
+        message: '비밀번호는 영문을 1개 이상 포함해야 합니다.',
+      };
+    }
 
-  // 영문 포함
-  if (!/[a-zA-Z]/.test(pw)) {
-    return false;
-  }
+    // 숫자 포함
+    if (!/\d/.test(pw)) {
+      return {
+        success: false,
+        message: '비밀번호는 숫자를 1개 이상 포함해야 합니다.',
+      };
+    }
 
-  // 숫자 포함
-  if (!/\d/.test(pw)) {
-    return false;
-  }
+    // 특수문자 포함
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw)) {
+      return {
+        success: false,
+        message: '비밀번호는 특수문자를 1개 이상 포함해야 합니다.',
+      };
+    }
 
-  // 특수문자 포함
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw)) {
-    return false;
+    // 모든 조건을 만족하면 true 반환
+    return { success: true, message: '비밀번호가 유효합니다.' };
   }
-
-  // 모든 조건을 만족하면 true 반환
-  return true;
 }

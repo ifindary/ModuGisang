@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useNavigate } from 'react-router-dom';
 import {
   ChallengeContext,
@@ -53,6 +54,7 @@ const InGame = () => {
   const [redirected, setRedirected] = useState(false);
   const { accessToken } = useContext(AccountContext);
   const { fetchData } = useFetch();
+  const [platform, setPlatform] = useState('web');
 
   const [mateList, setMateList] = useState([]);
   const [isMateSelected, setIsMateSelected] = useState(false);
@@ -118,6 +120,10 @@ const InGame = () => {
     };
   }, []);
 
+  useEffect(() => {
+    setPlatform(Capacitor.getPlatform());
+  }, []);
+
   const showSelectedMateData = mateId => {
     if (mateId !== -1) {
       setIsMateSelected(true);
@@ -155,7 +161,7 @@ const InGame = () => {
       <MusicController />
 
       {GAME_MODE[inGameMode] !== 'result' && (
-        <Wrapper $hasMate={mateList?.length > 0}>
+        <Wrapper $platform={platform} $hasMate={mateList?.length > 0}>
           <>
             <MyVideo />
             <MatesVideoWrapper $isSingle={mateList?.length === 1}>
@@ -181,19 +187,30 @@ export default InGame;
 
 const Wrapper = styled.div`
   width: 100vw;
-  height: 93vh;
+  height: ${({ $platform }) => ($platform === 'ios' ? '93vh' : '100vh')};
 
   overflow: hidden;
-  padding: 75px 24px 30px 24px;
 
-  ${({ $hasMate }) =>
-    $hasMate &&
+  ${({ $hasMate, $platform }) => css`
+    padding: ${$hasMate
+      ? $platform === 'web'
+        ? '104px 24px 0px 24px'
+        : $platform === 'ios'
+          ? '75px 24px 0px 24px'
+          : '75px 24px 0px 24px'
+      : $platform === 'ios'
+        ? '75px 24px 30px 24px'
+        : $platform === 'web'
+          ? '104px 24px 30px 24px'
+          : '75px 24px 30px 24px'};
+
+    ${$hasMate &&
     css`
       display: grid;
       grid-template-rows: auto 150px;
       gap: 10px;
-      padding: 75px 24px 0px 24px;
-    `};
+    `}
+  `}
 `;
 
 const MatesVideoWrapper = styled.div`

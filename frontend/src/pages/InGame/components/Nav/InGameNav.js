@@ -1,4 +1,5 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useNavigate } from 'react-router-dom';
 import {
   GameContext,
@@ -28,6 +29,7 @@ const InGameNav = () => {
   const { micOn, turnMicOnOff, myVideoRef, myStream } =
     useContext(OpenViduContext);
   const { setIsWarmUpDone } = useContext(MediaPipeContext);
+  const [platform, setPlatform] = useState('web');
 
   const goToMain = () => {
     setIsWarmUpDone(false);
@@ -40,6 +42,12 @@ const InGameNav = () => {
       }
     }
   };
+
+  useEffect(() => {
+    setPlatform(Capacitor.getPlatform());
+  }, []);
+
+  console.log(platform);
 
   // useEffect(() => {
   //   if (turnMicOnOff) {
@@ -62,7 +70,7 @@ const InGameNav = () => {
 
   if (inGameMode === 100) return null;
   return (
-    <Wrapper>
+    <Wrapper $platform={platform}>
       {(GAME_MODE[inGameMode] === 'waiting' ||
         GAME_MODE[inGameMode] === 'result') && (
         <RoundBtn btnStyle={BACK_BTN_STYLE} onClickHandler={goToMain} />
@@ -110,7 +118,14 @@ const Wrapper = styled.nav`
 
   width: 100vw;
   height: 100px;
-  padding: 59px 24px;
+  padding: ${
+    ({ $platform }) =>
+      $platform === 'ios'
+        ? '59px 24px'
+        : $platform === 'web'
+          ? '0 24px'
+          : '59px 24px' // Android나 다른 플랫폼의 경우 기본값
+  };
 `;
 
 const TextArea = styled.div`

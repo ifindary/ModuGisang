@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import {
   AccountContext,
   GameContext,
@@ -51,6 +52,8 @@ const Result = () => {
   const [theRestUsersStream, setTheRestUsersStream] = useState(null);
 
   const [isVideoLoading, setIsVideoLoading] = useState(true);
+
+  const [platform, setPlatform] = useState('web');
 
   const getGameResults = async () => {
     const response = await fetchData(() =>
@@ -144,9 +147,13 @@ const Result = () => {
     fireworks();
   }, []);
 
+  useEffect(() => {
+    setPlatform(Capacitor.getPlatform());
+  }, []);
+
   return (
     <>
-      <Wrapper $hasRest={theRestUsersStream?.length > 0}>
+      <Wrapper $platform={platform} $hasRest={theRestUsersStream?.length > 0}>
         <UpperArea>
           {(!theTopUserData || !theRestUsersStream) && (
             <LoadingWithText loadingMSG="결과를 불러오는 중입니다" />
@@ -256,19 +263,30 @@ export default Result;
 
 const Wrapper = styled.div`
   width: 100vw;
-  height: 93vh;
+  height: ${({ $platform }) => ($platform === 'ios' ? '93vh' : '100vh')};
 
   overflow: hidden;
-  padding: 75px 24px 30px 24px;
 
-  ${({ $hasRest }) =>
-    $hasRest &&
+  ${({ $hasRest, $platform }) => css`
+    padding: ${$hasRest
+      ? $platform === 'web'
+        ? '104px 24px 0px 24px'
+        : $platform === 'ios'
+          ? '75px 24px 0px 24px'
+          : '104px 24px 0px 24px'
+      : $platform === 'ios'
+        ? '75px 24px 30px 24px'
+        : $platform === 'web'
+          ? '104px 24px 30px 24px'
+          : '75px 24px 30px 24px'};
+
+    ${$hasRest &&
     css`
       display: grid;
       grid-template-rows: auto 150px;
       gap: 10px;
-      padding: 75px 24px 0px 24px;
-    `};
+    `}
+  `}
 `;
 
 const UpperArea = styled.div`
@@ -344,6 +362,7 @@ const TheTopVideo = styled.video`
       box-shadow: 2px 3px 30px rgba(255, 209, 0, 0.5);
     }
   }
+  transform: scaleX(-1);
 
   object-fit: cover;
 `;

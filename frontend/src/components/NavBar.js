@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { RoundBtn } from '../components';
 import { UserContext } from '../contexts';
+import { Capacitor } from '@capacitor/core';
 import styled from 'styled-components';
 
 const PAGE_TYPES = [
@@ -28,6 +29,7 @@ const NavBar = () => {
   const [hasRightBtn, setHasRightBtn] = useState(true);
   const [pageType, setPageType] = useState('main');
   const [scrolled, setScrolled] = useState(false);
+  const [platform, setPlatform] = useState('web');
 
   const goBack = () => {
     if (pageType === 'privacyPolicy' || pageType === 'termsOfService') {
@@ -126,11 +128,16 @@ const NavBar = () => {
     };
   }, []);
 
+  useEffect(() => {
+    setPlatform(Capacitor.getPlatform());
+  }, []);
+
   return (
     <Wrapper
       $hasLeftBtn={hasLeftBtn}
       $hasRightBtn={hasRightBtn}
       $scrolled={scrolled}
+      $platform={platform}
     >
       {hasLeftBtn && (
         <RoundBtn btnStyle={BACK_BTN_STYLE} onClickHandler={goBack} />
@@ -167,12 +174,18 @@ const Wrapper = styled.nav`
 
   width: 100vw;
   height: 100px;
-  padding: 59px 24px;
   z-index: 100;
   background: ${({ $scrolled, theme }) =>
     $scrolled ? theme.colors.translucent.white : 'transparent'};
   backdrop-filter: ${({ $scrolled }) => ($scrolled ? 'blur(15px)' : 'none')};
   transition: background 0.3s ease;
+
+  padding: ${({ $platform }) =>
+    $platform === 'ios'
+      ? '72px 24px'
+      : $platform === 'web'
+        ? '0 24px'
+        : '72px 24px'};
 `;
 
 const Title = styled.header`

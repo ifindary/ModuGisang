@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useContext } from 'react';
+import React, { useEffect, useRef, useContext, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import styled from 'styled-components';
 import { RoundBtn } from '../../../components';
 import {
@@ -15,6 +16,7 @@ const MusicController = () => {
   const handleUnmute = () => {
     isMusicMuted ? setIsMusicMuted(false) : setIsMusicMuted(true);
   };
+  const [platform, setPlatform] = useState('web');
 
   const MUSIC_ON_BTN_STYLE = {
     size: 48,
@@ -37,10 +39,14 @@ const MusicController = () => {
     },
   };
 
+  useEffect(() => {
+    setPlatform(Capacitor.getPlatform());
+  }, []);
+
   return (
     <>
       {inGameMode === 0 && (
-        <BtnWrapper>
+        <BtnWrapper $platform={platform}>
           <RoundBtn
             btnStyle={isMusicMuted ? MUSIC_OFF_BTN_STYLE : MUSIC_ON_BTN_STYLE}
             onClickHandler={handleUnmute}
@@ -60,6 +66,6 @@ export default MusicController;
 const BtnWrapper = styled.div`
   z-index: 400;
   position: fixed;
-  top: 174px;
+  top: ${({ $platform }) => ($platform === 'ios' ? '175px' : '125px')};
   right: 40px;
 `;

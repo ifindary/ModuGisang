@@ -1,4 +1,5 @@
 import React from 'react';
+import { Capacitor } from '@capacitor/core';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { GameContextProvider, OpenViduContextProvider } from './contexts';
 import { Signin, Signup, ForgotPassword, ProtectedRoute } from './pages/Auth';
@@ -20,6 +21,17 @@ import {
 
 import { SafeAreaProvider } from './contexts/SafeAreaContext'; // SafeAreaProvider 추가
 import SafeArea from './styles/SafeArea'; // SafeAreaWrapper를 가져옴
+
+const PlatformSafeArea = ({ children }) => {
+  const platform = Capacitor.getPlatform();
+
+  if (platform === 'ios') {
+    return <SafeArea>{children}</SafeArea>;
+  }
+
+  // web이나 다른 플랫폼의 경우 SafeArea를 적용하지 않음
+  return <>{children}</>;
+};
 
 function Router() {
   return (
@@ -80,41 +92,41 @@ function Router() {
             <Route
               path="/"
               element={
-                <SafeArea>
+                <PlatformSafeArea>
                   <Main />
-                </SafeArea>
+                </PlatformSafeArea>
               }
             />
             <Route
               path="/main"
               element={
-                <SafeArea>
+                <PlatformSafeArea>
                   <Main />
-                </SafeArea>
+                </PlatformSafeArea>
               }
             />
             <Route
               path="/myStreak"
               element={
-                <SafeArea>
+                <PlatformSafeArea>
                   <MyStreak />
-                </SafeArea>
+                </PlatformSafeArea>
               }
             />
             <Route
               path="/joinChallenge"
               element={
-                <SafeArea>
+                <PlatformSafeArea>
                   <JoinChallenge />
-                </SafeArea>
+                </PlatformSafeArea>
               }
             />
             <Route
               path="/createChallenge"
               element={
-                <SafeArea>
+                <PlatformSafeArea>
                   <CreateChallenge />
-                </SafeArea>
+                </PlatformSafeArea>
               }
             />
             <Route
@@ -122,9 +134,9 @@ function Router() {
               element={
                 <GameContextProvider>
                   <OpenViduContextProvider>
-                    <SafeArea>
+                    <PlatformSafeArea>
                       <InGame />
-                    </SafeArea>
+                    </PlatformSafeArea>
                   </OpenViduContextProvider>
                 </GameContextProvider>
               }
@@ -132,9 +144,9 @@ function Router() {
             <Route
               path="/settings"
               element={
-                <SafeArea>
+                <PlatformSafeArea>
                   <Settings />
-                </SafeArea>
+                </PlatformSafeArea>
               }
             />
             <Route
