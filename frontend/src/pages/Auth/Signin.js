@@ -1,23 +1,23 @@
-import React from 'react';
-import { useState } from 'react';
-import { LoadingWithText, LongBtn, InputLine } from '../../components';
-
+import React, { useState, useRef, useEffect } from 'react';
+import { LoadingWithText, LongBtn, InputLineWithFocus } from '../../components';
 import useAuth from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-
 import * as S from '../../styles/common';
-
-// import { CONFIGS } from '../../config';
 import styled from 'styled-components';
 import { onlysun } from '../../assets/icons';
 
 const Signin = () => {
-  // const { TEST_EMAIL, TEST_PASSWORD } = CONFIGS;
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [isEmailFocused, setIsEmailFocused] = useState(false); // 이메일 입력창 포커스 상태
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false); // 비밀번호 입력창 포커스 상태
   const { handleSubmitLogIn } = useAuth();
   const navigate = useNavigate();
+
+  const passwordInputRef = useRef(null); // 비밀번호 입력 필드에 대한 ref
+  const emailInputRef = useRef(null); // 이메일 입력 필드에 대한 ref
+  const spacerRef = useRef(null); // spacer에 대한 ref
 
   const handleLoginEmailChange = e => {
     setLoginEmail(e.target.value);
@@ -25,6 +25,43 @@ const Signin = () => {
 
   const handleLoginPasswordChange = e => {
     setLoginPassword(e.target.value);
+  };
+
+  const handleKeyDownEmail = e => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // 기본 동작 방지
+      if (passwordInputRef.current) {
+        passwordInputRef.current.focus(); // 비밀번호 입력 필드로 포커스 이동
+      }
+    }
+  };
+
+  const handleKeyDownPassword = async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // 기본 동작 방지
+      await handleSubmitLogIn({
+        e,
+        loginEmail,
+        loginPassword,
+        setIsLoginLoading,
+      });
+    }
+  };
+
+  // 포커스 이벤트 핸들러
+  const handleEmailFocus = () => {
+    setIsEmailFocused(true); // 이메일 입력창 포커스 상태 변경
+    setIsPasswordFocused(false); // 비밀번호 입력창 포커스 상태 해제
+  };
+
+  const handlePasswordFocus = () => {
+    setIsPasswordFocused(true); // 비밀번호 입력창 포커스 상태 변경
+    setIsEmailFocused(false); // 이메일 입력창 포커스 상태 해제
+  };
+
+  const handleBlur = () => {
+    setIsEmailFocused(false); // 이메일 입력창 포커스 해제
+    setIsPasswordFocused(false); // 비밀번호 입력창 포커스 해제
   };
 
   const goToSignUp = () => {
@@ -35,6 +72,14 @@ const Signin = () => {
     navigate('/forgotPassword');
   };
 
+  // 최초로 입력창에 포커스될 때 스크롤 이동
+  useEffect(() => {
+    if (isEmailFocused || isPasswordFocused) {
+      spacerRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [isEmailFocused, isPasswordFocused]);
+
+  // 로그인 중일 때 로딩 표시
   if (isLoginLoading) {
     return (
       <S.LoadingWrapper>
@@ -50,57 +95,50 @@ const Signin = () => {
         <Title>모두기상</Title>
         <Subtitle>친구와 함께 미라클 모닝 챌린지</Subtitle>
       </TitleBox>
-
-      <InputLine
+      <InputLineWithFocus
+        ref={emailInputRef} // 이메일 입력 필드에 ref 추가
         hasIcon={true}
         type="email"
         icon="user"
         iconStyle={iconStyle}
         value={loginEmail}
         onChange={handleLoginEmailChange}
-        onClickHandler={null}
+        onKeyDown={handleKeyDownEmail} // 수정된 부분
+        onFocus={handleEmailFocus} // 포커스 핸들러 추가
+        onBlur={handleBlur} // 블러 핸들러 추가
       />
-      <InputLine
+      <InputLineWithFocus
+        ref={passwordInputRef} // 비밀번호 입력 필드에 ref 추가
         hasIcon={true}
         type="password"
         icon="key"
         iconStyle={iconStyle}
         value={loginPassword}
         onChange={handleLoginPasswordChange}
-        onClickHandler={null}
+        onKeyDown={handleKeyDownPassword} // 수정된 부분
+        onFocus={handlePasswordFocus} // 포커스 핸들러 추가
+        onBlur={handleBlur} // 블러 핸들러 추가
       />
-      <>
-        <LongBtn
-          onClickHandler={async e =>
-            await handleSubmitLogIn({
-              e,
-              loginEmail,
-              loginPassword,
-              setIsLoginLoading,
-            })
-          }
-          type="submit"
-          btnName="로그인"
-        />
-        {/* <LongBtn
-          onClickHandler={async e => {
-            e.preventDefault();
-            await handleSubmitLogIn({
-              e,
-              loginEmail: TEST_EMAIL,
-              loginPassword: TEST_PASSWORD,
-              setIsLoginLoading,
-            });
-          }}
-          type="submit"
-          btnName="개발용 로그인"
-        /> */}
-      </>
+      <LongBtn
+        onClickHandler={async e =>
+          await handleSubmitLogIn({
+            e,
+            loginEmail,
+            loginPassword,
+            setIsLoginLoading,
+          })
+        }
+        type="submit"
+        btnName="로그인"
+      />
       <AuthOptions>
         <AuthButton onClick={goToForgotPassword}>비밀번호 찾기</AuthButton>
         <Divider>|</Divider>
         <AuthButton onClick={goToSignUp}>회원가입</AuthButton>
       </AuthOptions>
+      {/* 하단 여백 추가 */}
+      {(isEmailFocused || isPasswordFocused) && <Spacer ref={spacerRef} />}{' '}
+      {/* 입력창 중 하나가 포커스된 경우에만 여백 추가 */}
     </S.PageWrapper>
   );
 };
@@ -167,3 +205,7 @@ const iconStyle = {
   color: 'white',
   hoverColor: 'white',
 };
+
+const Spacer = styled.div`
+  height: 300px;
+`;
