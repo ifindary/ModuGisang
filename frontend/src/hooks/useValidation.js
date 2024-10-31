@@ -8,7 +8,7 @@ const useValidation = () => {
 
   const isValidPassword = useCallback(password => {
     const passwordRegex =
-      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
+      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&~])[A-Za-z\d@$!%*?&~]{8,16}$/;
     return passwordRegex.test(password);
   }, []);
 
