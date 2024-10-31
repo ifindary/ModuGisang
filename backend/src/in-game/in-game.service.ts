@@ -3,6 +3,7 @@ import RedisCacheService from 'src/redis-cache/redis-cache.service';
 import { ScoreDto } from './dto/score.dto';
 import { AttendanceService } from 'src/attendance/attendance.service';
 import { UserService } from 'src/users/users.service';
+import { ChallengesService } from 'src/challenges/challenges.service';
 const EXPIRE_TIME = 900; // redis key 만료 시간
 @Injectable()
 export class InGameService {
@@ -10,6 +11,7 @@ export class InGameService {
     private redisService: RedisCacheService,
     private attendanceService: AttendanceService,
     private userService: UserService,
+    private challengeService: ChallengesService,
   ) {}
   async recordEntryTime(userId: number): Promise<boolean> {
     const timestamp = Date.now().toString();
@@ -72,6 +74,10 @@ export class InGameService {
         .catch((e) => {
           console.error('Failed to set expire:', e);
         });
+      // if (this.challengeService.endChallenge(challengeId)) {
+      // completeChallenge 자체에 시간 비교 로직 존재
+      this.challengeService.completeChallenge(challengeId, userId);
+      //}
       return true;
     } catch (redisError) {
       console.error('Redis save error:', redisError);

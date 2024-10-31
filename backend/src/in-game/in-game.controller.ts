@@ -34,6 +34,14 @@ export class InGameController {
   async submitScore(@Body() scoreDto: ScoreDto, @Res() res) {
     console.log('@@@@@@@@@@@@@@@@@@@@@@점수 입력 컨트롤러 ', scoreDto);
     const result = await this.inGameService.submitScore(scoreDto);
+
+    res.cookie('complete', 'true', {
+      maxAge: 86400,
+      secure: process.env.IS_Production === 'true' ? true : false,
+      domain:
+        process.env.IS_Production === 'true' ? process.env.DOMAIN : undefined,
+    });
+
     res.status(HttpStatus.CREATED).json({ success: result });
   }
 

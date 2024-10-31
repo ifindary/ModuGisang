@@ -5,6 +5,7 @@ import {
   GameContext,
   OpenViduContext,
   MediaPipeContext,
+  SafeAreaContext,
 } from '../../../../contexts';
 import { RoundBtn } from '../../../../components';
 import { GameRound, Timer } from './';
@@ -29,7 +30,7 @@ const InGameNav = () => {
   const { micOn, turnMicOnOff, myVideoRef, myStream } =
     useContext(OpenViduContext);
   const { setIsWarmUpDone } = useContext(MediaPipeContext);
-  const [platform, setPlatform] = useState('web');
+  const { safeAreaPadding } = useContext(SafeAreaContext);
 
   const goToMain = () => {
     setIsWarmUpDone(false);
@@ -42,10 +43,6 @@ const InGameNav = () => {
       }
     }
   };
-
-  useEffect(() => {
-    setPlatform(Capacitor.getPlatform());
-  }, []);
 
   // useEffect(() => {
   //   if (turnMicOnOff) {
@@ -68,7 +65,7 @@ const InGameNav = () => {
 
   if (inGameMode === 100) return null;
   return (
-    <Wrapper $platform={platform}>
+    <Wrapper $safeAreaPadding={safeAreaPadding}>
       {(GAME_MODE[inGameMode] === 'waiting' ||
         GAME_MODE[inGameMode] === 'result') && (
         <RoundBtn btnStyle={BACK_BTN_STYLE} onClickHandler={goToMain} />
@@ -116,14 +113,7 @@ const Wrapper = styled.nav`
 
   width: 100vw;
   height: 100px;
-  padding: ${
-    ({ $platform }) =>
-      $platform === 'ios'
-        ? '59px 24px'
-        : $platform === 'web'
-          ? '0 24px'
-          : '59px 24px' // Android나 다른 플랫폼의 경우 기본값
-  };
+  padding: ${({ $safeAreaPadding }) => $safeAreaPadding};
 `;
 
 const TextArea = styled.div`

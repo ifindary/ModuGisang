@@ -4,6 +4,7 @@ import { ChallengeContext, ChallengeContextProvider } from './ChallengeContext';
 import { MediaPipeContext, MediaPipeContextProvider } from './MediaPipeContext';
 import { GameContext, GameContextProvider } from './GameContext';
 import { OpenViduContext, OpenViduContextProvider } from './OpenViduContext';
+import { SafeAreaContext, SafeAreaContextProvider } from './SafeAreaContext';
 
 export {
   AccountContext,
@@ -18,4 +19,6 @@ export {
   GameContextProvider,
   OpenViduContext,
   OpenViduContextProvider,
+  SafeAreaContext,
+  SafeAreaContextProvider,
 };

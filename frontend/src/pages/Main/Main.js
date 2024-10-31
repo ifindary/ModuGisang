@@ -96,7 +96,10 @@ export default Main;
 const CardsWrapper = styled.div`
   width: 100%;
   height: 100%;
+  flex-grow: 1;
+  overflow-y: auto;
   ${({ theme }) => theme.flex.center}
   flex-direction: column;
   gap: 20px;
+  padding-bottom: 239px;
 `;

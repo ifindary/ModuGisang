@@ -12,6 +12,7 @@ import {
 } from 'typeorm';
 
 @Entity()
+@Unique(['hostId']) // hostId에 대해 고유 제약 조건 설정.
 export class Challenges {
   @PrimaryGeneratedColumn()
   _id: number;
@@ -31,6 +32,15 @@ export class Challenges {
 
   @Column({ name: 'duration_days' })
   duration: number;
+
+  @Column({ name: 'end_date' })
+  endDate: Date;
+
+  @Column({ name: 'completed' })
+  completed: boolean;
+
+  @Column({ name: 'deleted' })
+  deleted: boolean;
 
   @OneToMany(() => Attendance, (attendance) => attendance.challenge, {
     cascade: true,

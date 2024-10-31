@@ -2,6 +2,7 @@ export class ChallengeResponseDto {
   challengeId: number;
   startDate: Date;
   wakeTime: Date;
+  hostId: number;
   duration: number;
   mates: ParticipantDto[];
 }

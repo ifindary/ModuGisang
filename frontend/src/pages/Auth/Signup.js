@@ -284,6 +284,8 @@ const SmallBtn = styled.button`
   ${({ theme }) => theme.fonts.JuaSmall}
   font-size: 20px;
   margin-left: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
 `;
 
 const EmailBox = styled.div`

@@ -336,6 +336,44 @@ export class UserService {
       console.log('redis에 유저 정보 저장 성공');
     }
   }
+  async resetChallenge(userId: number) {
+    const user = await this.userRepository.findOne({ where: { _id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.challengeId = -1;
+    await this.redisService.del(`userInfo:${userId}`);
+    await this.userRepository.save(user);
+  }
+
+  // 메달 증가 함수
+  async updateUserMedals(
+    userId: number,
+    medalType: 'gold' | 'silver' | 'bronze',
+  ): Promise<Users> {
+    const user = await this.userRepository.findOne({ where: { _id: userId } });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // 해당 메달의 수를 증가시킵니다.
+    user.medals[medalType] += 1;
+
+    // 업데이트된 유저 정보를 저장합니다.
+    // redis에 저장된 user 정보 삭제
+    await this.redisService.del(`userInfo:${userId}`);
+    return await this.userRepository.save(user);
+  }
+  decideMedalType(duration: number): 'gold' | 'silver' | 'bronze' {
+    if (duration === 100) {
+      return 'gold';
+    } else if (duration === 30) {
+      return 'silver';
+    } else if (duration === 7) {
+      return 'bronze';
+    }
+  }
 
   async verifyUserPassword(user: Users, password: string) {
     const isPasswordMatching = await argon2.verify(user.password, password);
@@ -458,7 +496,7 @@ export class UserService {
     }
 
     // 특수문자 포함
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw)) {
+    if (!/[!@#~$%^&*()₩`_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw)) {
       return {
         success: false,
         message: '비밀번호는 특수문자를 1개 이상 포함해야 합니다.',
