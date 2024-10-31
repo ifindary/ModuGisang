@@ -10,14 +10,14 @@ const Signin = () => {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [isLoginLoading, setIsLoginLoading] = useState(false);
-  const [isEmailFocused, setIsEmailFocused] = useState(false); // 이메일 입력창 포커스 상태
-  const [isPasswordFocused, setIsPasswordFocused] = useState(false); // 비밀번호 입력창 포커스 상태
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const { handleSubmitLogIn } = useAuth();
   const navigate = useNavigate();
 
-  const passwordInputRef = useRef(null); // 비밀번호 입력 필드에 대한 ref
-  const emailInputRef = useRef(null); // 이메일 입력 필드에 대한 ref
-  const spacerRef = useRef(null); // spacer에 대한 ref
+  const passwordInputRef = useRef(null);
+  const emailInputRef = useRef(null);
+  const spacerRef = useRef(null);
 
   const handleLoginEmailChange = e => {
     setLoginEmail(e.target.value);
@@ -29,16 +29,16 @@ const Signin = () => {
 
   const handleKeyDownEmail = e => {
     if (e.key === 'Enter') {
-      e.preventDefault(); // 기본 동작 방지
+      e.preventDefault();
       if (passwordInputRef.current) {
-        passwordInputRef.current.focus(); // 비밀번호 입력 필드로 포커스 이동
+        passwordInputRef.current.focus();
       }
     }
   };
 
   const handleKeyDownPassword = async e => {
     if (e.key === 'Enter') {
-      e.preventDefault(); // 기본 동작 방지
+      e.preventDefault();
       await handleSubmitLogIn({
         e,
         loginEmail,
@@ -48,20 +48,19 @@ const Signin = () => {
     }
   };
 
-  // 포커스 이벤트 핸들러
   const handleEmailFocus = () => {
-    setIsEmailFocused(true); // 이메일 입력창 포커스 상태 변경
-    setIsPasswordFocused(false); // 비밀번호 입력창 포커스 상태 해제
+    setIsEmailFocused(true);
+    setIsPasswordFocused(false);
   };
 
   const handlePasswordFocus = () => {
-    setIsPasswordFocused(true); // 비밀번호 입력창 포커스 상태 변경
-    setIsEmailFocused(false); // 이메일 입력창 포커스 상태 해제
+    setIsPasswordFocused(true);
+    setIsEmailFocused(false);
   };
 
   const handleBlur = () => {
-    setIsEmailFocused(false); // 이메일 입력창 포커스 해제
-    setIsPasswordFocused(false); // 비밀번호 입력창 포커스 해제
+    setIsEmailFocused(false);
+    setIsPasswordFocused(false);
   };
 
   const goToSignUp = () => {
@@ -72,14 +71,12 @@ const Signin = () => {
     navigate('/forgotPassword');
   };
 
-  // 최초로 입력창에 포커스될 때 스크롤 이동
   useEffect(() => {
     if (isEmailFocused || isPasswordFocused) {
       spacerRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [isEmailFocused, isPasswordFocused]);
 
-  // 로그인 중일 때 로딩 표시
   if (isLoginLoading) {
     return (
       <S.LoadingWrapper>
@@ -96,28 +93,28 @@ const Signin = () => {
         <Subtitle>친구와 함께 미라클 모닝 챌린지</Subtitle>
       </TitleBox>
       <InputLineWithFocus
-        ref={emailInputRef} // 이메일 입력 필드에 ref 추가
+        ref={emailInputRef}
         hasIcon={true}
         type="email"
         icon="user"
         iconStyle={iconStyle}
         value={loginEmail}
         onChange={handleLoginEmailChange}
-        onKeyDown={handleKeyDownEmail} // 수정된 부분
-        onFocus={handleEmailFocus} // 포커스 핸들러 추가
-        onBlur={handleBlur} // 블러 핸들러 추가
+        onKeyDown={handleKeyDownEmail}
+        onFocus={handleEmailFocus}
+        onBlur={handleBlur}
       />
       <InputLineWithFocus
-        ref={passwordInputRef} // 비밀번호 입력 필드에 ref 추가
+        ref={passwordInputRef}
         hasIcon={true}
         type="password"
         icon="key"
         iconStyle={iconStyle}
         value={loginPassword}
         onChange={handleLoginPasswordChange}
-        onKeyDown={handleKeyDownPassword} // 수정된 부분
-        onFocus={handlePasswordFocus} // 포커스 핸들러 추가
-        onBlur={handleBlur} // 블러 핸들러 추가
+        onKeyDown={handleKeyDownPassword}
+        onFocus={handlePasswordFocus}
+        onBlur={handleBlur}
       />
       <LongBtn
         onClickHandler={async e =>
@@ -136,9 +133,7 @@ const Signin = () => {
         <Divider>|</Divider>
         <AuthButton onClick={goToSignUp}>회원가입</AuthButton>
       </AuthOptions>
-      {/* 하단 여백 추가 */}
       {(isEmailFocused || isPasswordFocused) && <Spacer ref={spacerRef} />}{' '}
-      {/* 입력창 중 하나가 포커스된 경우에만 여백 추가 */}
     </S.PageWrapper>
   );
 };
