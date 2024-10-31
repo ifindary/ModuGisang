@@ -10,8 +10,8 @@ const InputLineWithFocus = ({
   value,
   onChange,
   onKeyDown,
-  onFocus, // onFocus prop 추가
-  onBlur, // onBlur prop 추가
+  onFocus,
+  onBlur,
   onClickHandler,
   disabled,
 }) => {
@@ -22,10 +22,10 @@ const InputLineWithFocus = ({
         value={value}
         onChange={onChange}
         onKeyDown={onKeyDown}
-        onFocus={onFocus} // onFocus 이벤트 처리
-        onBlur={onBlur} // onBlur 이벤트 처리
-        onTouchStart={onFocus} // 터치 시작 시 포커스 처리
-        onMouseDown={onFocus} // 마우스 클릭 시 포커스 처리
+        onFocus={onFocus}
+        onBlur={onBlur}
+        onTouchStart={onFocus}
+        onMouseDown={onFocus}
         disabled={disabled}
       />
       {hasIcon ? (
@@ -54,8 +54,8 @@ const InputBox = styled.input`
   padding: 15px;
 
   &:focus {
-    outline: none; // 기본 포커스 테두리 제거
-    border: 1px solid ${({ theme }) => theme.colors.primary.purple}; // 포커스 시 새로운 테두리 색상 적용
+    outline: none;
+    border: 1px solid ${({ theme }) => theme.colors.primary.purple};
     background-color: ${({ theme }) => theme.colors.translucent.white};
   }
   &:disabled {
