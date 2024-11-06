@@ -16,6 +16,7 @@ import { InGameModule } from './in-game/in-game.module';
 import { GameStatusModule } from './game-status/game-status.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { HealthCheckModule } from './health-check/health-check.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     EmailModule,
     InGameModule,
     GameStatusModule,
+    HealthCheckModule,
   ],
   controllers: [AppController],
   providers: [
