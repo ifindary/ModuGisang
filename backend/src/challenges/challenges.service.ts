@@ -477,9 +477,12 @@ export class ChallengesService {
     challengeId: number,
     userId: number,
   ): Promise<boolean> {
-    const challenge = await this.challengeRepository.findOne({
-      where: { _id: challengeId },
-    });
+    let challenge = await this.redisCheckChallenge(challengeId);
+    if (!challenge) {
+      challenge = await this.challengeRepository.findOne({
+        where: { _id: challengeId },
+      });
+    }
     if (!challenge) {
       throw new NotFoundException(`Challenge with ID ${challengeId} not found`);
     }
