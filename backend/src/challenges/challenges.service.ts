@@ -258,14 +258,12 @@ export class ChallengesService {
   async getChallengeInfo(
     challengeId: number,
   ): Promise<ChallengeResponseDto | null> {
-    const cacheKey = `challenge_${challengeId}`;
-
     if (challengeId > 0) {
       // 캐시에서 데이터 가져오기 시도
-      const cachedChallenge = await this.redisCacheService.get(cacheKey);
+      const cachedChallenge = await this.redisCheckChallenge(challengeId);
       console.log(cachedChallenge);
       if (cachedChallenge) {
-        return JSON.parse(cachedChallenge) as ChallengeResponseDto;
+        return cachedChallenge as ChallengeResponseDto;
       }
     }
 
@@ -288,7 +286,16 @@ export class ChallengesService {
       userId: user._id,
       userName: user.userName,
     }));
+    const challengeResponse = this.cacheSetChallege(challenge, participantDtos);
+    console.log(challengeResponse);
 
+    return challengeResponse;
+  }
+
+  async cacheSetChallege(
+    challenge: Challenges,
+    participantDtos: ParticipantDto[],
+  ) {
     const challengeResponse: ChallengeResponseDto = {
       challengeId: challenge._id,
       startDate: challenge.startDate,
@@ -301,19 +308,16 @@ export class ChallengesService {
       mates: participantDtos,
     };
 
-    if (challengeId > 0) {
+    if (challenge._id > 0) {
       // 결과를 캐시에 저장
       await this.redisCacheService.set(
-        cacheKey,
+        `challenge_${challenge._id}`,
         JSON.stringify(challengeResponse),
         parseInt(process.env.REDIS_CHALLENGE_EXP),
       ); // 10분 TTL
     }
-    console.log(challengeResponse);
-
     return challengeResponse;
   }
-
   // async getChallengeInfo(
   //   challengeId: number,
   // ): Promise<ChallengeResponseDto | null> {
