@@ -303,7 +303,6 @@ export class ChallengesService {
       hostId: challenge.hostId,
       wakeTime: challenge.wakeTime,
       duration: challenge.duration,
-      endDate: challenge.endDate,
       completed: challenge.completed,
       deleted: challenge.deleted,
       mates: participantDtos,
