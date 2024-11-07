@@ -273,7 +273,7 @@ export class ChallengesService {
     });
 
     if (!challenge) {
-      return null; // 챌린지가 없으면 null 반환
+      throw new NotFoundException(`Challenge with ID ${challengeId} not found`);
     }
 
     // 해당 챌린지 ID를 가진 모든 사용자 검색

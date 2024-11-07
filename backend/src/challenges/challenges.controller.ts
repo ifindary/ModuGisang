@@ -34,12 +34,9 @@ export class ChallengesController {
   async getChallengeInfo(
     @Query('challengeId') challengeId: number,
   ): Promise<ChallengeResponseDto> {
-    const challenge = await this.challengeService.getChallengeInfo(challengeId);
-    if (!challenge) {
-      throw new NotFoundException(`Challenge with ID ${challengeId} not found`);
-    }
-    return challenge;
+    return await this.challengeService.getChallengeInfo(challengeId);
   }
+
   @Post('create')
   async createChallenge(@Body() createChallengeDto: CreateChallengeDto) {
     console.log('create');
