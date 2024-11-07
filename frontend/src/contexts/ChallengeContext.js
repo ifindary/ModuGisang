@@ -7,14 +7,14 @@ import { AccountContext, UserContext } from './';
 const ChallengeContext = createContext();
 
 const ChallengeContextProvider = ({ children }) => {
-  const { userId } = useContext(AccountContext);
-  const { accessToken } = useContext(AccountContext);
-  const { challengeId } = useContext(UserContext);
+  const { userId, accessToken } = useContext(AccountContext);
+  const { challengeId, getMyData } = useContext(UserContext);
   const { fetchData } = useFetch();
 
   const [challengeData, setChallengeData] = useState({
     // challengeId: 6,
     // startDate: '2021-09-01T00:00:00.000Z',
+    // endDate: '2021-09-08T00:00:00.000Z',
     // wakeTime: '17:30',
     // duration: 7,
     // mates: [
@@ -56,15 +56,18 @@ const ChallengeContextProvider = ({ children }) => {
         newChallengeData,
       }),
     );
+
     const {
       isLoading: isCreateChallengeLoading,
       data: createChallengeData,
       error: createChallengeError,
     } = response;
+
     if (!isCreateChallengeLoading && createChallengeData) {
     } else if (!isCreateChallengeLoading && createChallengeError) {
       console.error(createChallengeError);
     }
+
     return response;
   };
 
@@ -82,11 +85,13 @@ const ChallengeContextProvider = ({ children }) => {
         userId,
       }),
     );
+
     const {
       isLoading: isAcceptInviLoading,
       data: acceptInviData,
       error: acceptInviError,
     } = response;
+
     if (!isAcceptInviLoading && acceptInviData) {
       setIsAcceptInviLoading(false);
     } else if (!isAcceptInviLoading && acceptInviError) {
@@ -117,6 +122,40 @@ const ChallengeContextProvider = ({ children }) => {
       console.error(todayChallengeDataError);
     }
   };
+
+  const requestCompleteChallenge = async () => {
+    const response = await fetchData(() =>
+      challengeServices.completeChallenge({
+        accessToken,
+        challengeId,
+        userId,
+      }),
+    );
+
+    const {
+      isLoading: isCompleteChallengeLoading,
+      data: completeChallengeData,
+      error: completeChallengeError,
+    } = response;
+
+    if (!isCompleteChallengeLoading && completeChallengeData) {
+      if (completeChallengeData.completed) {
+        getMyData();
+      } else {
+        console.warn(completeChallengeData.message);
+      }
+    } else if (!isCompleteChallengeLoading && completeChallengeError) {
+      console.error(completeChallengeError);
+    }
+  };
+
+  const isChallengeCompleted = () => {
+    const endDateWithTime =
+      challengeData?.endDate.split('T')[0] + 'T' + challengeData?.wakeTime;
+
+    return new Date(endDateWithTime) < new Date();
+  };
+
   useEffect(() => {
     if (challengeId !== null && challengeId !== -1 && userId) {
       getChallengeData();
@@ -126,6 +165,10 @@ const ChallengeContextProvider = ({ children }) => {
   useEffect(() => {
     if (challengeId !== null && challengeId !== -1 && userId) {
       getTodayChallengeData();
+
+      if (isChallengeCompleted()) {
+        requestCompleteChallenge();
+      }
     }
   }, [challengeData]);
 
