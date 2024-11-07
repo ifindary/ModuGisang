@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { OpenviduModule } from './openvidu/openvidu.module';
@@ -17,6 +17,7 @@ import { GameStatusModule } from './game-status/game-status.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { HealthCheckModule } from './health-check/health-check.module';
+import { HealthCheckAuthMiddleware } from './health-check/health-check.middleware';
 
 @Module({
   imports: [
@@ -52,4 +53,8 @@ import { HealthCheckModule } from './health-check/health-check.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(HealthCheckAuthMiddleware).forRoutes('health-check');
+  }
+}
