@@ -14,6 +14,8 @@ import { DatabaseModule } from './database/database.module';
 import { EmailModule } from './email/email.module';
 import { InGameModule } from './in-game/in-game.module';
 import { GameStatusModule } from './game-status/game-status.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 @Module({
   imports: [
@@ -40,6 +42,12 @@ import { GameStatusModule } from './game-status/game-status.module';
     GameStatusModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+  ],
 })
 export class AppModule {}

@@ -19,8 +19,12 @@
 # build
 /backend/dist
 
-#key
+# key
 *.pem
 
-#test
-*.spec.ts
+# # test
+# *.spec.ts
+
+# log 
+*.log
+logs/
