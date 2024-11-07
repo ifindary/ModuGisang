@@ -449,9 +449,14 @@ export class ChallengesService {
   }
 
   async setWakeTime(setChallengeWakeTimeDto): Promise<void> {
-    const challengeValue = await this.challengeRepository.findOne({
-      where: { _id: setChallengeWakeTimeDto.challengeId },
-    });
+    let challengeValue = await this.redisCheckChallenge(
+      setChallengeWakeTimeDto.challengeId,
+    );
+    if (!challengeValue) {
+      challengeValue = await this.challengeRepository.findOne({
+        where: { _id: setChallengeWakeTimeDto.challengeId },
+      });
+    }
     if (!challengeValue) {
       throw new NotFoundException(
         `Challenge with ID ${setChallengeWakeTimeDto.challengeId} not found`,
