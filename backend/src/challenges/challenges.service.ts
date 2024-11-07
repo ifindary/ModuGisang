@@ -72,10 +72,12 @@ export class ChallengesService {
     this.validateStartAndWakeTime(challenge.startDate, challenge.wakeTime);
     this.validateDuration(challenge.duration);
 
-    const editChall = await this.challengeRepository.findOne({
-      where: { _id: challenge.challengeId },
-    });
-
+    let editChall = await this.redisCheckChallenge(challenge.challengeId);
+    if (!editChall) {
+      editChall = await this.challengeRepository.findOne({
+        where: { _id: challenge.challengeId },
+      });
+    }
     if (!editChall) {
       throw new NotFoundException(
         `Challenge with ID ${challenge.challengeId} not found`,
