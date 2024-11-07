@@ -295,6 +295,9 @@ export class ChallengesService {
       hostId: challenge.hostId,
       wakeTime: challenge.wakeTime,
       duration: challenge.duration,
+      endDate: challenge.endDate,
+      completed: challenge.completed,
+      deleted: challenge.deleted,
       mates: participantDtos,
     };
 
@@ -306,6 +309,7 @@ export class ChallengesService {
         parseInt(process.env.REDIS_CHALLENGE_EXP),
       ); // 10분 TTL
     }
+    console.log(challengeResponse);
 
     return challengeResponse;
   }
