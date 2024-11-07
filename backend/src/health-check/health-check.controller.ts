@@ -7,7 +7,8 @@ import {
   MemoryHealthIndicator,
   HealthIndicatorResult,
 } from '@nestjs/terminus';
-import { RedisHealthIndicator } from '../redis-cache/redis-health-indicator';
+import { RedisHealthIndicator } from './indicator/redis-health-indicator';
+import { TimeHealthIndicator } from './indicator/time-health-indicator';
 
 @Controller('health-check')
 export class HealthCheckController {
@@ -17,6 +18,7 @@ export class HealthCheckController {
     private redis: RedisHealthIndicator,
     private disk: DiskHealthIndicator,
     private memory: MemoryHealthIndicator,
+    private time: TimeHealthIndicator,
   ) {}
 
   @Get()
@@ -35,6 +37,7 @@ export class HealthCheckController {
       // 고정된 양의 공간도 확인 가능 threshold: 250 * 1024 * 1024 * 1024 -> 250GB를 초과하는 경우
       async () => this.memory.checkHeap('memory_heap', 1 * 1024 * 1024 * 1024), // 1.0GB(1,024MB) 이상 사용 시 경고 50% 이하로 유지
       async () => this.memory.checkRSS('memory_rss', 1.6 * 1024 * 1024 * 1024), // 1.6GB(1,638MB) 이상 사용 시 경고 80% 이하로 유지
+      async () => this.time.isHealthy(), // 서버시간 확인
     ]);
   }
 }

@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { HealthCheckController } from './health-check.controller';
 import { TerminusModule } from '@nestjs/terminus';
-import { RedisHealthIndicator } from '../redis-cache/redis-health-indicator';
+import { RedisHealthIndicator } from './indicator/redis-health-indicator';
+import { TimeHealthIndicator } from './indicator/time-health-indicator';
 import { TerminusLogger } from './terminus-logger.service';
 
 @Module({
@@ -12,6 +13,6 @@ import { TerminusLogger } from './terminus-logger.service';
     }),
   ],
   controllers: [HealthCheckController],
-  providers: [RedisHealthIndicator],
+  providers: [RedisHealthIndicator, TimeHealthIndicator],
 })
 export class HealthCheckModule {}
