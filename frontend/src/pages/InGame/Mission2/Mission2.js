@@ -35,7 +35,14 @@ let prevforehead = null;
 let isMovingScore = 0;
 let isMovingStatus = true; // 움직이는 중인지 여부
 let myPostitStatus = [false, false, false]; // 측정 결과
-const timeoutDuration = 16000; // 제한 시간
+
+let topEyebrowIndex = 107;
+let rightCheekIndex = 376;
+let leftCheekIndex = 147;
+let rightMouseIndex = 291; // 볼 움직임 체크가 어려워 입꼬리를 대신 사용
+let leftMouseIndex = 61;
+
+const timeoutDuration = 160000; // 제한 시간
 let isTimeOut = false; // 타임 아웃 여부
 let isGameStart = false;
 
@@ -142,9 +149,9 @@ const Mission2 = () => {
         }
       }
 
-      const topEyebrow = faceLandmarks[107]; // 눈썹
-      const leftCheek = faceLandmarks[61]; // 왼쪽 볼
-      const rightCheek = faceLandmarks[291]; // 오른쪽 볼
+      const topEyebrow = faceLandmarks[topEyebrowIndex];
+      const leftCheek = faceLandmarks[leftMouseIndex];
+      const rightCheek = faceLandmarks[rightMouseIndex];
 
       if (!isMovingStatus && !isTimeOut) {
         // 눈썹 움직임 확인
@@ -368,7 +375,11 @@ const Mission2 = () => {
         if (!status) {
           const newPostitPosition = calculatePostitPosition(
             faceLandmarks,
-            index === 0 ? 107 : index === 1 ? 147 : 376, // 각 포스트잇의 위치 계산(0: 이마, 1: 왼쪽 볼, 2: 오른쪽 볼)
+            index === 0
+              ? topEyebrowIndex
+              : index === 1
+                ? leftCheekIndex
+                : rightCheekIndex, // 각 포스트잇의 위치 계산(0: 이마, 1: 왼쪽 볼, 2: 오른쪽 볼)
           );
           setPostitPositions(prevPositions => {
             const updatedPositions = [...prevPositions];
@@ -449,25 +460,51 @@ const Mission2 = () => {
     };
   }, [isMissionStarting, holisticModel]);
 
-  // 포스트잇의 위치와 크기를 계산하는 함수
   const calculatePostitPosition = (landmarks, index) => {
     // 왼쪽 끝점과 오른쪽 끝점의 x 좌표 차이를 얼굴 너비로 사용
     const faceWidth =
       Math.abs(landmarks[123].x - landmarks[352].x) * window.innerWidth;
     // 얼굴 너비를 기준으로 포스트잇 크기 조정
-    const resizedSize = faceWidth * 0.4;
+    // const resizedSize = faceWidth * 0.3;
+    const resizedSize = 5;
+
+    // myVideoRef.current.videoWidth, myVideoRef.current.videoHeight는 openvidu를 사용해 가져오는 거라 고정값
+    // window.innerWidth, window.innerHeight는 기기 해상도
+
+    const pageAspectRatio = window.innerWidth / window.innerHeight;
+
+    const videoAspectRatio =
+      myVideoRef.current.videoWidth / myVideoRef.current.videoHeight;
+
+    let cutTopBottom = 0;
+    let cutLeftRight = 0;
+
+    if (pageAspectRatio > videoAspectRatio) {
+      // 페이지가 더 넓으므로 상하가 잘리는 경우
+      const adjustedVideoHeight = window.innerWidth / videoAspectRatio;
+      cutTopBottom = (adjustedVideoHeight - window.innerHeight) / 2;
+      console.log(`위아래가 각각 ${cutTopBottom}px 씩 잘립니다.`);
+    } else {
+      // 페이지가 더 좁으므로 좌우가 잘리는 경우
+      const adjustedVideoWidth = window.innerHeight * videoAspectRatio;
+      cutLeftRight = (adjustedVideoWidth - window.innerWidth) / 2;
+      console.log(`좌우가 각각 ${cutLeftRight}px 씩 잘립니다.`);
+    }
 
     // 포스트잇을 붙일 랜드마크의 좌표
     const point = landmarks[index];
+    // console.log('------- ', videoRect);
     let { x, y } = point;
 
     // 랜드마크의 비율을 캔버스의 픽셀 값으로 변환
-    x *= window.innerWidth;
-    y *= window.innerHeight - 260;
+    const tempaaaa = window.innerWidth;
+    const tempbbbb = window.innerHeight - cutTopBottom;
+    x *= tempaaaa;
+    y *= tempbbbb;
 
     // 포스트잇의 중앙 좌표 계산 (포스트잇이 얼굴의 중앙에 위치하도록)
-    const drawX = x - resizedSize / 2;
-    const drawY = y - resizedSize + 125;
+    const drawX = x - resizedSize / 2 - cutLeftRight;
+    const drawY = y - resizedSize / 2;
 
     // 포스트잇의 위치 및 크기 정보 반환
     return {
@@ -475,6 +512,24 @@ const Mission2 = () => {
       left: drawX,
       size: resizedSize,
     };
+  };
+
+  const calculatePost2itPosition = (landmarks, index) => {
+    // 비디오 요소의 크기를 가져옴
+    const videoElement = myVideoRef.current;
+    if (!videoElement) return { top: 0, left: 0, size: 0 };
+    const videoRect = videoElement.getBoundingClientRect();
+    const { width: videoWidth, height: videoHeight } = videoRect; // 왼쪽 끝점과 오른쪽 끝점의 x 좌표 차이를 얼굴 너비로 사용
+    const faceWidth =
+      Math.abs(landmarks[123].x - landmarks[352].x) * videoWidth; // 얼굴 너비를 기준으로 포스트잇 크기 조정
+    const resizedSize = faceWidth * 0.3; // 포스트잇을 붙일 랜드마크의 좌표
+    const point = landmarks[index];
+    let { x, y } = point;
+    const absoluteX = x * videoWidth + videoRect.left;
+    const absoluteY = y * videoHeight + videoRect.top; // 포스트잇 중앙 좌표 계산
+    const drawX = absoluteX - resizedSize;
+    const drawY = absoluteY - resizedSize; // 포스트잇의 위치 및 크기 정보 반환
+    return { top: drawY, left: drawX, size: resizedSize };
   };
 
   return (
