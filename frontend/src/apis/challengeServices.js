@@ -72,6 +72,16 @@ const checkMateAvailability = async ({ accessToken, email }) => {
   return await API.get(url, config);
 };
 
+const completeChallenge = async ({ accessToken, challengeId, userId }) => {
+  const url = `/challenge/complete/${challengeId}/${userId}`;
+  const config = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  };
+
+  // post 요청이지만 body가 없는 경우 빈 객체를 전달해야 함!!!
+  return await API.post(url, {}, config);
+};
+
 const getCalendarInfo = async ({ accessToken, userId, month }) => {
   const url = `/challenge/calendar/${userId}/${month}`;
   const config = {
@@ -100,6 +110,7 @@ const getConnectionToken = async ({ accessToken, userData }) => {
 export const challengeServices = {
   getChallengeInfo,
   createChallenge,
+  completeChallenge,
   checkMateAvailability,
   getInvitationInfo,
   acceptInvitation,

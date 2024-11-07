@@ -451,28 +451,113 @@ const Mission2 = () => {
 
   // 포스트잇의 위치와 크기를 계산하는 함수
   const calculatePostitPosition = (landmarks, index) => {
-    // 왼쪽 끝점과 오른쪽 끝점의 x 좌표 차이를 얼굴 너비로 사용
-    const faceWidth =
-      Math.abs(landmarks[123].x - landmarks[352].x) * window.innerWidth;
-    // 얼굴 너비를 기준으로 포스트잇 크기 조정
-    const resizedSize = faceWidth * 0.4;
+    const videoElement = myVideoRef.current;
+    if (!videoElement) return { top: 0, left: 0, size: 0 };
 
-    // 포스트잇을 붙일 랜드마크의 좌표
+    const videoRect = videoElement.getBoundingClientRect();
+    const { width: videoWidth, height: videoHeight } = videoRect;
+    const windowWidth = window.innerWidth;
+
+    const faceBox = {
+      left: Math.min(...landmarks.map(point => point.x)),
+      right: Math.max(...landmarks.map(point => point.x)),
+      top: Math.min(...landmarks.map(point => point.y)),
+      bottom: Math.max(...landmarks.map(point => point.y)),
+    };
+
+    const faceWidth = (faceBox.right - faceBox.left) * videoWidth;
+    const faceHeight = (faceBox.bottom - faceBox.top) * videoHeight;
+    const resizedSize = Math.min(faceWidth, faceHeight) * 0.35;
+
     const point = landmarks[index];
-    let { x, y } = point;
+    const x = point.x * videoWidth;
+    const y = point.y * videoHeight;
 
-    // 랜드마크의 비율을 캔버스의 픽셀 값으로 변환
-    x *= window.innerWidth;
-    y *= window.innerHeight - 260;
+    let offsetX = 0;
+    let offsetY = 0;
 
-    // 포스트잇의 중앙 좌표 계산 (포스트잇이 얼굴의 중앙에 위치하도록)
-    const drawX = x - resizedSize / 2;
-    const drawY = y - resizedSize + 125;
+    // 스크린 사이즈별 오프셋 설정
+    const getOffsets = (index, size) => {
+      if (windowWidth <= 480) {
+        // 모바일
+        switch (index) {
+          case 107:
+            return { x: size * 0.7, y: size * 1.2 };
+          case 147:
+            return { x: size * 0.55, y: size * 1.3 };
+          case 376:
+            return { x: size * 0.35, y: size * 1.3 };
+          default:
+            return { x: 0, y: -size * 0.4 };
+        }
+      } else if (windowWidth <= 600) {
+        // 작은 태블릿
+        switch (index) {
+          case 107:
+            return { x: size * 0.5, y: size * 0.4 };
+          case 147:
+            return { x: size * 0.4, y: size * 0.7 };
+          case 376:
+            return { x: size * 0.2, y: size * 0.7 };
+          default:
+            return { x: 0, y: -size * 0.4 };
+        }
+      } else if (windowWidth <= 800) {
+        // 태블릿
+        switch (index) {
+          case 107:
+            return { x: size * 0.5, y: size * 0.1 };
+          case 147:
+            return { x: size * 0.4, y: size * 0.7 };
+          case 376:
+            return { x: size * 0.2, y: size * 0.7 };
+          default:
+            return { x: 0, y: -size * 0.4 };
+        }
+      } else if (windowWidth <= 1024) {
+        // 데스크탑
+        switch (index) {
+          case 107:
+            return { x: size * 0.6, y: size * -0.3 };
+          case 147:
+            return { x: size * 0.4, y: size * 0.7 };
+          case 376:
+            return { x: size * 0.2, y: size * 0.7 };
+          default:
+            return { x: 0, y: -size * 0.4 };
+        }
+      } else {
+        // 대형 데스크탑
+        switch (index) {
+          case 107:
+            return { x: size * 0.6, y: size * -0.7 };
+          case 147:
+            return { x: size * 0.4, y: size * 0.7 };
+          case 376:
+            return { x: size * 0.2, y: size * 0.7 };
+          default:
+            return { x: 0, y: -size * 0.4 };
+        }
+      }
+    };
 
-    // 포스트잇의 위치 및 크기 정보 반환
+    const offsets = getOffsets(index, resizedSize);
+    offsetX = offsets.x;
+    offsetY = offsets.y;
+
+    // 경계 체크 및 조정
+    const finalLeft = Math.max(
+      0,
+      Math.min(x - resizedSize / 2 + offsetX, videoWidth - resizedSize),
+    );
+    const finalTop = Math.max(
+      0,
+      Math.min(y + offsetY, videoHeight - resizedSize),
+    );
+
     return {
-      top: drawY,
-      left: drawX,
+      top: finalTop,
+      left: finalLeft,
       size: resizedSize,
     };
   };

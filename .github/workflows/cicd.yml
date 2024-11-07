@@ -1,0 +1,46 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - dev-v2
+    paths:
+      - "backend/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Deploy for EC2
+        if: success()
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_KEY: ${{ secrets.EC2_KEY }}
+          EC2_MAIN_HOST: ${{ secrets.EC2_MAIN_HOST }}
+        run: |
+          echo "$EC2_KEY" > ec2_key.pem
+          chmod 600 ec2_key.pem
+          rsync -avz -e "ssh -i ec2_key.pem" dist/ $EC2_USER@$EC2_HOST:/home/ubuntu/Final
+          ssh -i ec2_key.pem $EC2_USER@$EC2_HOST "
+            rsync -avz -e 'ssh -i /path/to/modugisang.pem' /home/ubuntu/Final/ $EC2_USER@$EC2_MAIN_HOST:/home/ubuntu/Final &&
+            ssh -i /path/to/modugisang.pem $EC2_USER@$EC2_MAIN_HOST 'cd Final && pm2 kill && pm2 start dist/main.js --name Final'
+          "

@@ -299,6 +299,7 @@ export class ChallengesService {
     const challengeResponse: ChallengeResponseDto = {
       challengeId: challenge._id,
       startDate: challenge.startDate,
+      endDate: challenge.endDate,
       hostId: challenge.hostId,
       wakeTime: challenge.wakeTime,
       duration: challenge.duration,
@@ -564,6 +565,7 @@ export class ChallengesService {
       );
     }
   }
+
   async redisCheckChallenge(challengeId: number) {
     const challenge = await this.redisCacheService.get(
       `challenge_${challengeId}`,
@@ -575,6 +577,7 @@ export class ChallengesService {
     console.log('redis에 challenge 정보가 있습니다.');
     return JSON.parse(challenge);
   }
+
   validateChallengeDate(currentDate, challenge) {
     if (currentDate < challenge.startDate || currentDate > challenge.endDate) {
       return false;

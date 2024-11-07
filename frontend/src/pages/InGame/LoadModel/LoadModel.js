@@ -141,10 +141,50 @@ const LoadModel = () => {
   }, []);
 
   useEffect(() => {
+    if (isWarmUpDone) {
+      const currentMates = mateStreams
+        .map(mate => ({
+          userId: parseInt(JSON.parse(mate.stream.connection.data).userId),
+          userName: JSON.parse(mate.stream.connection.data).userName,
+          ready:
+            matesReadyStatus?.[
+              parseInt(JSON.parse(mate.stream.connection.data).userId)
+            ]?.ready || false,
+        }))
+        .filter(mate => mate.userId !== myId);
+
+      setMateList(currentMates);
+
+      // 모든 현재 접속자가 ready 상태인지 확인
+      const allReady =
+        currentMates.length > 0 &&
+        currentMates.every(mate => matesReadyStatus?.[mate.userId]?.ready);
+
+      // 프로그레스바 업데이트
+      const readyCount = currentMates.filter(
+        mate => matesReadyStatus?.[mate.userId]?.ready,
+      ).length;
+      progressRef.current = currentMates.length
+        ? (readyCount / currentMates.length) * 100
+        : 100;
+
+      // 모두 준비되었다면 게임 시작
+      if (allReady) {
+        setTimeout(() => {
+          progressRef.current = 0;
+          startFirstMission();
+          if (!micOn) {
+            turnMicOnOff();
+          }
+        }, 2000);
+      }
+    }
+  }, [mateStreams, matesReadyStatus, isWarmUpDone]);
+
+  // 타임아웃 처리
+  useEffect(() => {
     if (loadModelWithTimeLimit.timeout) {
       exitFromGame();
-
-      console.log(`loadedStates: ${JSON.stringify(loadedStates)}`);
       console.error(
         `====ERROR occurred during load model: ${loadModelWithTimeLimit.error}====`,
       );
@@ -153,47 +193,9 @@ const LoadModel = () => {
 
   useEffect(() => {
     if (isWarmUpDone) {
-      setTimeout(() => {
-        progressRef.current = 0;
-      }, 2000);
-
       sendMyReadyStatus();
-      let mates = mateStreams.map(mate => ({
-        userId: parseInt(JSON.parse(mate.stream.connection.data).userId),
-        userName: JSON.parse(mate.stream.connection.data).userName,
-        ready: false,
-      }));
-      mates.filter(mate => mate.userId !== myId);
-      setMateList(mates);
     }
-  }, [isWarmUpDone, mateStreams]);
-
-  useEffect(() => {
-    if (isWarmUpDone && matesReadyStatus) {
-      const updatedMateList = mateList.map(({ userId, userName }) => ({
-        userId,
-        userName,
-        ready: matesReadyStatus?.[userId]?.ready,
-      }));
-      setMateList(updatedMateList);
-      const readyMates = mateList?.filter(mate => mate?.ready);
-
-      progressRef.current = (readyMates?.length / mateList?.length) * 100;
-
-      const startGame = () => {
-        startFirstMission();
-        if (!micOn) {
-          turnMicOnOff();
-        }
-      };
-
-      if (readyMates?.length === mateList?.length) {
-        setTimeout(() => {
-          startGame();
-        }, 2000);
-      }
-    }
-  }, [matesReadyStatus]);
+  }, [isWarmUpDone]);
 
   return (
     <Wrapper>
