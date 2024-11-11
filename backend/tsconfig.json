@@ -17,8 +17,6 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "paths": {
-      "@common/*": ["common/*"]
-    }
+    "moduleResolution": "node"
   }
 }
