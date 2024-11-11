@@ -20,6 +20,39 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Create .env file with secrets
+        run: |
+          cd backend
+          echo TZ=${{ secrets.TZ }} >> .env.production
+          echo POSTGRESQL_DATABASE_USER=${{ secrets.POSTGRESQL_DATABASE_USER }} >> .env.production
+          echo POSTGRESQL_DATABASE_PASSWORD=${{ secrets.POSTGRESQL_DATABASE_PASSWORD }} >> .env.production
+          echo POSTGRESQL_DATABASE_HOST=${{ secrets.POSTGRESQL_DATABASE_HOST }} >> .env.production
+          echo POSTGRESQL_DATABASE_PORT=${{ secrets.POSTGRESQL_DATABASE_PORT }} >> .env.production
+          echo POSTGRESQL_DATABASE_NAME=${{ secrets.POSTGRESQL_DATABASE_NAME }} >> .env
+          echo POSTGRESQL_SSL_KEY=${{ secrets.POSTGRESQL_SSL_KEY }} >> .env.production
+          echo REDIS_URL=${{ secrets.REDIS_URL }} >> .env.production
+          echo REDIS_HOST=${{ secrets.REDIS_HOST }} >> .env.production
+          echo REDIS_PORT=${{ secrets.REDIS_PORT }} >> .env.production
+          echo REDIS_STORE=${{ secrets.REDIS_STORE }} >> .env.production
+          echo REDIS_USER_INFO_EXP=${{ secrets.REDIS_USER_INFO_EXP }} >> .env.production
+          echo REDIS_CHALLENGE_EXP=${{ secrets.REDIS_CHALLENGE_EXP }} >> .env.production
+          echo NEST_PORT=${{ secrets.NEST_PORT }} >> .env.production
+          echo OPENVIDU_URL=${{ secrets.OPENVIDU_URL }} >> .env.production
+          echo OPENVIDU_SECRET=${{ secrets.OPENVIDU_SECRET }} >> .env.production
+          echo API_KEY=${{ secrets.API_KEY }} >> .env.production
+          echo VAL_EMAIL=${{ secrets.VAL_EMAIL }} >> .env.production
+          echo ACCESS_TOKEN_SECRET_KEY=${{ secrets.ACCESS_TOKEN_SECRET_KEY }} >> .env.production
+          echo ACCESS_TOKEN_EXP=${{ secrets.ACCESS_TOKEN_EXP }} >> .env
+          echo REFRESH_TOKEN_SECRET_KEY=${{ secrets.REFRESH_TOKEN_SECRET_KEY }} >> .env.production
+          echo REFRESH_TOKEN_EXP=${{ secrets.REFRESH_TOKEN_EXP }} >> .env.production
+          echo SOCKET_PORT=${{ secrets.SOCKET_PORT }} >> .env.production
+          echo IS_Production=${{ secrets.IS_Production }} >> .env.production
+          echo CORS_ORIGINS=${{ secrets.CORS_ORIGINS }} >> .env.production
+          echo DOMAIN=${{ secrets.DOMAIN }} >> .env.production
+          echo EMAIL_WELCOME_SUBJECT=${{ secrets.EMAIL_WELCOME_SUBJECT }} >> .env.production
+          echo ISSUANCE_TMP_PW=${{ secrets.ISSUANCE_TMP_PW }} >> .env.production
+          echo SENSITIVE_FIELDS=${{ secrets.SENSITIVE_FIELDS }} >> .env.production
+
       - name: Install dependencies
         run: |
           cd backend  
