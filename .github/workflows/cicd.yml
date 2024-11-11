@@ -64,10 +64,15 @@ jobs:
       #   run: |
       #     cd backend
       #     npm run test
+      - name: Check if all required files are present
+        run: |
+          cd backend/src/common/interceptors
+          ls
 
       - name: Build Project
         run: |
           cd backend
+          ls
           npm run build
 
       - name: Deploy for EC2
