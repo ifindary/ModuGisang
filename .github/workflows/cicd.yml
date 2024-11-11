@@ -67,7 +67,6 @@ jobs:
         run: |
           cd backend
           ls
-
           npm run build
 
       - name: Deploy for EC2
