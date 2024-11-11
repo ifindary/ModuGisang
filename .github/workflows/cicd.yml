@@ -66,8 +66,6 @@ jobs:
       - name: Build Project
         run: |
           cd backend
-          ls
-
           npm run build
 
       - name: Deploy for EC2
@@ -79,6 +77,7 @@ jobs:
           EC2_MAIN_HOST: ${{ secrets.EC2_MAIN_HOST }}
         run: |
           cd backend
+          ls
           echo "$EC2_KEY" > ec2_key.pem
           chmod 600 ec2_key.pem
           rsync -avz -e "ssh -i ec2_key.pem" dist/ $EC2_USER@$EC2_HOST:/home/ubuntu/Final
