@@ -55,7 +55,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd backend  
+          cd backend
+          rm -rf dist
+          rm -rf node_modules
           npm ci
 
       # - name: Run tests
