@@ -15,7 +15,7 @@ import { EmailModule } from './email/email.module';
 import { InGameModule } from './in-game/in-game.module';
 import { GameStatusModule } from './game-status/game-status.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { LoggingInterceptor } from 'src/common/interceptors/logging.interceptor';
 
 @Module({
   imports: [
