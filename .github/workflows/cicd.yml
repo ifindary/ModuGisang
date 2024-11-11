@@ -21,13 +21,19 @@ jobs:
           node-version: "22"
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          cd backend  
+          npm ci
 
       - name: Run tests
-        run: npm run test
+        run: |
+          cd backend
+          npm run test
 
       - name: Build Project
-        run: npm run build
+        run: |
+          cd backend
+          npm run build
 
       - name: Deploy for EC2
         if: success()
@@ -37,6 +43,7 @@ jobs:
           EC2_KEY: ${{ secrets.EC2_KEY }}
           EC2_MAIN_HOST: ${{ secrets.EC2_MAIN_HOST }}
         run: |
+          cd backend
           echo "$EC2_KEY" > ec2_key.pem
           chmod 600 ec2_key.pem
           rsync -avz -e "ssh -i ec2_key.pem" dist/ $EC2_USER@$EC2_HOST:/home/ubuntu/Final
