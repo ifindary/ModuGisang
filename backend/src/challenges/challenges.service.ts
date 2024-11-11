@@ -292,6 +292,7 @@ export class ChallengesService {
     const challengeResponse: ChallengeResponseDto = {
       challengeId: challenge._id,
       startDate: challenge.startDate,
+      endDate: challenge.endDate,
       hostId: challenge.hostId,
       wakeTime: challenge.wakeTime,
       duration: challenge.duration,
@@ -480,9 +481,10 @@ export class ChallengesService {
       await this.redisCacheService.del(`challenge_${challengeId}`);
       await this.challengeRepository.save(challenge);
     } else {
-      throw new BadRequestException(
-        `Challenge with ID ${challengeId} is already completed.`,
-      );
+      // 늦게 들어온 사람의 경우 이미 completed 되어있지만, 개인 정보는 바꿔줘야 하므로 에러 발생하면 안 됨.
+      // throw new BadRequestException(
+      //   `Challenge with ID ${challengeId} is already completed.`,
+      // );
     }
     await this.userService.resetChallenge(userId); // 2.user 챌린지 정보를 -1로 변경
 
@@ -556,6 +558,7 @@ export class ChallengesService {
       );
     }
   }
+
   async redisCheckChallenge(challengeId: number) {
     const challenge = await this.redisCacheService.get(
       `challenge_${challengeId}`,
@@ -567,6 +570,7 @@ export class ChallengesService {
     console.log('redis에 challenge 정보가 있습니다.');
     return JSON.parse(challenge);
   }
+
   validateChallengeDate(currentDate, challenge) {
     if (currentDate < challenge.startDate || currentDate > challenge.endDate) {
       return false;

@@ -30,6 +30,7 @@ export class ChallengesController {
     private readonly challengeService: ChallengesService,
     private readonly redisService: RedisCacheService,
   ) {}
+
   @Get()
   async getChallengeInfo(
     @Query('challengeId') challengeId: number,
@@ -40,6 +41,7 @@ export class ChallengesController {
     }
     return challenge;
   }
+
   @Post('create')
   async createChallenge(@Body() createChallengeDto: CreateChallengeDto) {
     console.log('create');
@@ -71,6 +73,7 @@ export class ChallengesController {
       }
     }
   }
+
   @Post('edit')
   async editChallenge(@Body() editChallengeDto: EditChallengeDto) {
     console.log('edit');
@@ -78,6 +81,7 @@ export class ChallengesController {
       await this.challengeService.editChallenge(editChallengeDto);
     return challenge;
   }
+
   @Post('delete/:challengeId/:hostId') // 챌린지 생성하고 시작하지 않고 삭제하는 경우
   async deleteChallenge(
     @Param('challengeId') challengeId: number,
@@ -111,6 +115,7 @@ export class ChallengesController {
       challengeId,
       userId,
     );
+
     if (result === true) {
       return {
         completed: true,
@@ -136,12 +141,14 @@ export class ChallengesController {
       isEngaged: result,
     };
   }
+
   @Get('invitations')
   getInvitations(@Query('guestId') guestId: number) {
     console.log(guestId);
     const invitations = this.challengeService.getInvitations(guestId);
     return invitations; // 데이터 반환 값 수정 예정
   }
+
   @Post('accept-invitation')
   async acceptInvitation(@Body() acceptInvitationDto: AcceptInvitationDto) {
     const result =
@@ -184,6 +191,7 @@ export class ChallengesController {
       throw new InternalServerErrorException('An unexpected error occurred');
     }
   }
+
   @Post('/changeWakeTime')
   async setChallengeWakeTime(@Body() setChallengeWakeTimeDto): Promise<void> {
     console.log('기상시간 변경완료');
