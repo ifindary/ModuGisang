@@ -64,26 +64,10 @@ jobs:
       #   run: |
       #     cd backend
       #     npm run test
-      - name: Check if all required files are present
-        run: |
-          ls
-          cd backend
-          ls
-          cd src
-          ls
-          cd common
-          ls
-          cd Interceptors
-
-      - name: Check if all required files are present
-        run: |
-          cd backend/src/common/Interceptors
-          ls
 
       - name: Build Project
         run: |
           cd backend
-          ls
           npm run build
 
       - name: Deploy for EC2
@@ -95,21 +79,25 @@ jobs:
           EC2_MAIN_HOST: ${{ secrets.EC2_MAIN_HOST }}
         run: |
           cd backend
-          ls
           echo "$EC2_KEY" > ec2_key.pem
           chmod 600 ec2_key.pem
 
+          # SSH 설정 디렉토리 생성 및 권한 설정
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
 
-          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
-          ssh-keyscan -H "$EC2_MAIN_HOST" >> ~/.ssh/known_hosts
+          # StrictHostKeyChecking 비활성화
+          echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null" > ~/.ssh/config
+          chmod 600 ~/.ssh/config
 
-          # SSH 연결 테스트
-          ssh -vvv -i ec2_key.pem $EC2_USER@$EC2_HOST "echo 'SSH 연결 성공'"
+          # SSH 연결 테스트 (디버그 메시지 제거)
+          ssh -i ec2_key.pem $EC2_USER@$EC2_HOST "echo 'SSH connection successful'"
 
+          # rsync를 사용한 파일 전송
+          rsync -avz --delete -e "ssh -i ec2_key.pem" dist/ $EC2_USER@$EC2_HOST:/home/ubuntu/Final
 
-          rsync -avz -e "ssh -i ec2_key.pem" dist/ $EC2_USER@$EC2_HOST:/home/ubuntu/Final
+          # 메인 호스트로 배포 및 PM2 재시작
           ssh -i ec2_key.pem $EC2_USER@$EC2_HOST "
-            rsync -avz -e 'ssh -i modugisang.pem' /home/ubuntu/Final/ $EC2_USER@$EC2_MAIN_HOST:/home/ubuntu/Final &&
+            rsync -avz --delete -e 'ssh -i modugisang.pem' /home/ubuntu/Final/ $EC2_USER@$EC2_MAIN_HOST:/home/ubuntu/Final &&
             ssh -i modugisang.pem $EC2_USER@$EC2_MAIN_HOST 'cd Final && pm2 kill && pm2 start dist/main.js --name Final'
           "
