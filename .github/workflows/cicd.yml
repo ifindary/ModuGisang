@@ -104,8 +104,12 @@ jobs:
           ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
           ssh-keyscan -H "$EC2_MAIN_HOST" >> ~/.ssh/known_hosts
 
+          # SSH 연결 테스트
+          ssh -i ec2_key.pem $EC2_USER@$EC2_HOST "echo 'SSH 연결 성공'"
+
+
           rsync -avz -e "ssh -i ec2_key.pem" dist/ $EC2_USER@$EC2_HOST:/home/ubuntu/Final
           ssh -i ec2_key.pem $EC2_USER@$EC2_HOST "
-            rsync -avz -e 'ssh -i /path/to/modugisang.pem' /home/ubuntu/Final/ $EC2_USER@$EC2_MAIN_HOST:/home/ubuntu/Final &&
-            ssh -i /path/to/modugisang.pem $EC2_USER@$EC2_MAIN_HOST 'cd Final && pm2 kill && pm2 start dist/main.js --name Final'
+            rsync -avz -e 'ssh -i modugisang.pem' /home/ubuntu/Final/ $EC2_USER@$EC2_MAIN_HOST:/home/ubuntu/Final &&
+            ssh -i modugisang.pem $EC2_USER@$EC2_MAIN_HOST 'cd Final && pm2 kill && pm2 start dist/main.js --name Final'
           "
