@@ -105,7 +105,7 @@ jobs:
           ssh-keyscan -H "$EC2_MAIN_HOST" >> ~/.ssh/known_hosts
 
           # SSH 연결 테스트
-          ssh -i ec2_key.pem $EC2_USER@$EC2_HOST "echo 'SSH 연결 성공'"
+          ssh -vvv -i ec2_key.pem $EC2_USER@$EC2_HOST "echo 'SSH 연결 성공'"
 
 
           rsync -avz -e "ssh -i ec2_key.pem" dist/ $EC2_USER@$EC2_HOST:/home/ubuntu/Final
