@@ -73,11 +73,11 @@ jobs:
           ls
           cd common
           ls
-          cd interceptors
+          cd Interceptors
 
       - name: Check if all required files are present
         run: |
-          cd backend/src/common/interceptors
+          cd backend/src/common/Interceptors
           ls
 
       - name: Build Project
