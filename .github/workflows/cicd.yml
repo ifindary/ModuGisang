@@ -66,6 +66,17 @@ jobs:
       #     npm run test
       - name: Check if all required files are present
         run: |
+          ls
+          cd backend
+          ls
+          cd src
+          ls
+          cd common
+          ls
+          cd interceptors
+
+      - name: Check if all required files are present
+        run: |
           cd backend/src/common/interceptors
           ls
 
