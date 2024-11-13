@@ -14,6 +14,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { QueryFailedError } from 'typeorm';
 import { ChallengesService } from './challenges.service';
 import { CreateChallengeDto } from './dto/createChallenge.dto';
 import { AuthenticateGuard } from 'src/auth/auth.guard';
@@ -53,24 +54,44 @@ export class ChallengesController {
       const challenge =
         await this.challengeService.createChallenge(createChallengeDto);
 
-      const challenge_id = await this.challengeService.hostChallengeStatus(
+      // 챌린지 생성 후, host의 challengeId 정보 업데이트
+      await this.challengeService.updateUserChallenge(
         createChallengeDto.hostId,
+        challenge._id,
       );
 
-      for (let i = 0; i < createChallengeDto.mates.length; i++) {
-        const send = await this.challengeService.sendInvitation(
-          challenge_id,
-          createChallengeDto.mates[i],
-        );
+      for (const mate of createChallengeDto.mates) {
+        await this.challengeService.sendInvitation(challenge._id, mate);
       }
-      this.redisService.del(`userInfo:${createChallengeDto.hostId}`);
+
       return challenge;
     } catch (error) {
-      if (error.message.includes('중복')) {
-        throw new ConflictException(
-          '해당 호스트는 이미 챌린지를 만들었습니다.',
-        );
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
       }
+
+      // 데이터베이스 관련 에러 처리
+      if (error instanceof QueryFailedError) {
+        if (error.message.includes('UQ_host_active_challenge')) {
+          throw new BadRequestException('이미 진행 중인 챌린지가 있습니다.');
+        } else if (error.message.includes('UQ_invitation')) {
+          throw new ConflictException('이미 초대된 사용자입니다.');
+        } else {
+          throw new InternalServerErrorException(
+            '챌린지 생성 중 DB 오류가 발생했습니다.',
+          );
+        }
+      }
+
+      // 예상치 못한 에러
+      console.error('Unexpected error:', error);
+      throw new InternalServerErrorException(
+        '챌린지 생성 중 오류가 발생했습니다.',
+      );
     }
   }
 

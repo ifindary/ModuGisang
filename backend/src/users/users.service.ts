@@ -342,6 +342,7 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
     user.challengeId = -1;
+    user.openviduToken = null;
     await this.redisService.del(`userInfo:${userId}`);
     await this.userRepository.save(user);
   }
@@ -365,6 +366,7 @@ export class UserService {
     await this.redisService.del(`userInfo:${userId}`);
     return await this.userRepository.save(user);
   }
+
   decideMedalType(duration: number): 'gold' | 'silver' | 'bronze' {
     if (duration === 100) {
       return 'gold';
@@ -409,9 +411,8 @@ export class UserService {
         }
       }
 
-      // 삭제될 사용자는 챌린지에서 빠짐
-      user.challengeId = -1;
-      await this.userRepository.save(user);
+      // 삭제될 사용자의 챌린지 정보 초기화
+      await this.resetChallenge(userId);
     }
 
     // 챌린지 정보 캐시 삭제
