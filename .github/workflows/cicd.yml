@@ -94,7 +94,7 @@ jobs:
           # SSH 연결 테스트 (디버그 메시지 제거)
           ssh -i ec2_key.pem $EC2_USER@$EC2_HOST "echo 'SSH connection successful'"
 
-          rsync -avz -e "ssh -i ec2_key.pem" dist/ $EC2_USER@$EC2_HOST:/home/ubuntu/cicd/
+          rsync -avz -e "ssh -i ec2_key.pem" backend/dist/ $EC2_USER@$EC2_HOST:/home/ubuntu/cicd/
           ssh -i ec2_key.pem $EC2_USER@$EC2_HOST "
             ls && cd cicd && pm2 log
           "
