@@ -70,13 +70,6 @@ jobs:
           cd backend
           npm run build
 
-      - name: Verify dist folder creation
-        run: |
-          cd backend
-          npm run build  # 빌드 명령 실행
-          ls -al  # backend 폴더 내용 확인
-          ls -al dist  # dist 폴더가 backend 폴더 내에 생성되었는지 확인
-
       - name: Deploy for EC2
         if: success()
         env:
@@ -102,7 +95,7 @@ jobs:
           # SSH 연결 테스트 (디버그 메시지 제거)
           ssh -i ec2_key.pem $EC2_USER@$EC2_HOST "echo 'SSH connection successful'"
 
-          rsync -avz -e "ssh -i ec2_key.pem" backend/dist/ $EC2_USER@$EC2_HOST:/home/$EC2_USER/cicd/
+          rsync -avz -e "ssh -i ec2_key.pem" dist/ $EC2_USER@$EC2_HOST:/home/$EC2_USER/cicd/dist
           ssh -i ec2_key.pem $EC2_USER@$EC2_HOST "
-            ls && cd cicd && pm2 log
+            ls && cd cicd && /home/$EC2_USER/.nvm/versions/node/v22.0.0/bin/pm2 log
           "
