@@ -93,11 +93,7 @@ jobs:
           # SSH 연결 테스트 (디버그 메시지 제거)
           ssh -i ec2_key.pem $EC2_USER@$EC2_HOST "echo 'SSH connection successful'"
 
-          # rsync를 사용한 파일 전송
-          rsync -avz --delete -e "ssh -i ec2_key.pem" dist/ $EC2_USER@$EC2_HOST:/home/ubuntu/Final
-
-          # 메인 호스트로 배포 및 PM2 재시작
+          rsync -avz -e "ssh -i ec2_key.pem" dist/ $EC2_USER@$EC2_HOST:/home/ubuntu/Final
           ssh -i ec2_key.pem $EC2_USER@$EC2_HOST "
-            rsync -avz --delete -e 'ssh -i modugisang.pem' /home/ubuntu/Final/ $EC2_USER@$EC2_MAIN_HOST:/home/ubuntu/Final &&
-            ssh -i modugisang.pem $EC2_USER@$EC2_MAIN_HOST 'cd Final && pm2 kill && pm2 start dist/main.js --name Final'
+            cd Final && pm2 kill && pm2 start dist/main.js --name Final
           "
