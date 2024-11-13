@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { Challenges } from './challenges.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -50,6 +51,21 @@ export class ChallengesService {
   }
 
   async createChallenge(challenge: CreateChallengeDto): Promise<Challenges> {
+    const user = await this.userService.findOneByID(challenge.hostId);
+
+    if (!user) {
+      throw new NotFoundException(
+        `해당 ID(${challenge.hostId})를 가지는 유저는 존재하지 않습니다.`,
+      );
+    }
+
+    // challengeId가 -1이 아닌 경우 새로운 챌린지 생성 불가
+    if (user.challengeId !== -1) {
+      throw new ConflictException(
+        '챌린지를 생성하기 전에 기존 챌린지를 완료해야 합니다.',
+      );
+    }
+
     this.validateStartAndWakeTime(challenge.startDate, challenge.wakeTime);
     this.validateDuration(challenge.duration);
 
@@ -198,25 +214,22 @@ export class ChallengesService {
     }
   }
 
-  async hostChallengeStatus(hostId: number): Promise<number> {
-    const challengeId = await this.challengeRepository
-      .createQueryBuilder('challenges')
-      .innerJoin('challenges.host', 'users')
-      .where('challenges.hostId = :hostId', { hostId })
-      .andWhere('users.deletedAt IS NULL') // 소프트 삭제된 유저 제외
-      .getOne();
-
-    const user = await this.userRepository.findOneBy({
-      _id: hostId,
-    });
-    if (user && challengeId) {
-      user.challengeId = challengeId._id;
-      await this.userRepository.save(user);
-      await this.redisCacheService.del(`userInfo:${hostId}`);
-      return challengeId._id;
+  async updateUserChallenge(
+    userId: number,
+    challengeId: number,
+  ): Promise<void> {
+    const user = await this.userRepository.findOneBy({ _id: userId });
+    if (!user) {
+      throw new NotFoundException(
+        `해당 ID(${userId})를 가지는 유저가 존재하지 않습니다.`,
+      );
     }
-    return null;
+
+    user.challengeId = challengeId;
+    await this.userRepository.save(user);
+    await this.redisCacheService.del(`userInfo:${userId}`);
   }
+
   async sendInvitation(challengeId: number, email: string): Promise<void> {
     console.log('sendInvitation', email);
     const user = await this.userRepository.findOne({
@@ -486,8 +499,7 @@ export class ChallengesService {
       //   `Challenge with ID ${challengeId} is already completed.`,
       // );
     }
-    await this.userService.resetChallenge(userId); // 2.user 챌린지 정보를 -1로 변경
-
+    await this.userService.resetChallenge(userId); // 2.user 챌린지 정보 초기화 (challengeId = -1, openviduToekn = null )
     // 3. 메달처리
     // 기간별로 90%이상 80점 이상 달성시 메달 획득 금 100 은 30 동 7
     const qualifiedDaysCount = await this.attendanceRepository.count({
