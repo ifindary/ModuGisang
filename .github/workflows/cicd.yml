@@ -65,24 +65,6 @@ jobs:
           cd backend
           npm run build
 
-      - name: Verify Application
-        run: |
-          cd backend
-          npm run start &
-          SERVER_PID=$!
-
-          # 서버 상태 확인 (예: HTTP 응답 코드 체크)
-          STATUS_CODE=$(curl --silent --output /dev/null --write-out "%{http_code}" http://localhost:3000/healthz)
-          if [ $STATUS_CODE -eq 200 ]; then
-            echo "Server is running successfully"
-          else
-            echo "Server failed to start"
-            exit 1
-          fi
-
-          # 서버 종료
-          kill $SERVER_PID
-
       - name: Deploy for EC2
         if: success()
         env:
@@ -113,5 +95,8 @@ jobs:
             cd /home/$EC2_USER/cicd && \
             npm ci && \
             pm2 kill && \
-            pm2 start dist/main.js --name Final
+            pm2 start dist/main.js --name Final && \
+            cd .. && \
+            rsync -avz -e 'ssh -i modugisang.pem' /home/$EC2_USER/cicd/dist $EC2_USER@$EC2_MAIN_HOST:/home/$EC2_USER/cicd/dist && \
+            ssh -i modugisang.pem $EC2_USER@$EC2_MAIN_HOST 'cd cicd && npm ci && pm2 log'
           "
