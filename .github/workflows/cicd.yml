@@ -52,6 +52,7 @@ jobs:
           echo EMAIL_WELCOME_SUBJECT=${{ secrets.EMAIL_WELCOME_SUBJECT }} >> .env.production
           echo ISSUANCE_TMP_PW=${{ secrets.ISSUANCE_TMP_PW }} >> .env.production
           echo SENSITIVE_FIELDS=${{ secrets.SENSITIVE_FIELDS }} >> .env.production
+          echo HEALTH_CHECK_API_KEY=${{ secrets.HEALTH_CHECK_API_KEY }} >> .env.production
 
       - name: Install dependencies
         run: |
