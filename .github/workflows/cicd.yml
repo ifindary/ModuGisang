@@ -98,5 +98,13 @@ jobs:
             pm2 start dist/main.js --name Final && \
             cd .. && \
             rsync -avz -e 'ssh -i modugisang.pem' /home/$EC2_USER/cicd/dist $EC2_USER@$EC2_MAIN_HOST:/home/$EC2_USER/cicd/dist && \
-            ssh -i modugisang.pem $EC2_USER@$EC2_MAIN_HOST 'cd cicd && npm ci && pm2 log'
+            
+            ssh -i modugisang.pem $EC2_USER@$EC2_MAIN_HOST '
+            # 두 번째 서버에서도 nvm과 pm2 설정
+            source /home/$EC2_USER/.nvm/nvm.sh && \
+            nvm use 22 && \
+            cd /home/$EC2_USER/cicd && \
+            npm ci && \
+            pm2 log
+            '
           "
