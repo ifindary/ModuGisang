@@ -1,16 +1,13 @@
 import React, { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext, ChallengeContext, AccountContext } from '../../contexts';
-import useCheckTime from '../../hooks/useCheckTime';
-import BottomFixContent from './cardComponents/BottomFixContent';
 import { NavBar, OutlineBox, LoadingWithText } from '../../components';
 import {
   StreakContent,
   InvitationsContent,
-  CreateContent,
   ChallengeContent,
-  EnterContent,
 } from './cardComponents';
+import BottomFixContent from './cardComponents/BottomFixContent';
 import { CARD_TYPES, CARD_STYLES } from './DATA';
 
 import styled from 'styled-components';
@@ -21,17 +18,14 @@ const Main = () => {
 
   const { accessToken, userId } = useContext(AccountContext);
   const { challengeId, getMyData } = useContext(UserContext);
-  const { challengeData, isAttended } = useContext(ChallengeContext);
-  const { checkTime } = useCheckTime();
+  const { challengeData } = useContext(ChallengeContext);
 
   const hasChallenge = Number(challengeId) !== -1;
 
   const CARD_CONTENTS = {
     streak: <StreakContent />,
     invitations: <InvitationsContent />,
-    create: <CreateContent />,
     challenge: <ChallengeContent challenges={challengeData} />,
-    enter: <EnterContent />,
   };
 
   const CARD_ON_CLICK_HANDLERS = {
@@ -40,21 +34,7 @@ const Main = () => {
       // 초대받은 challenge 존재 여부에 따라 분기처리
       navigate('/joinChallenge');
     },
-    create: () => navigate('/createChallenge'),
     challenge: null,
-    enter: () => {
-      const { isTooEarly, isTooLate } = checkTime(challengeData?.wakeTime);
-
-      if (isTooEarly) {
-        alert('너무 일찍 오셨습니다. 10분 전부터 입장 가능합니다.');
-      } else if (isTooLate && !isAttended) {
-        alert('챌린지 참여 시간이 지났습니다. 내일 다시 참여해주세요.');
-      } else if (isTooLate && isAttended) {
-        alert('멋져요! 오늘의 미라클 모닝 성공! 내일 또 만나요');
-      } else {
-        navigate(`/startMorning`);
-      }
-    },
   };
 
   useEffect(() => {
@@ -85,7 +65,7 @@ const Main = () => {
             ),
           )}
         </CardsWrapper>
-        <BottomFixContent onClickHandler={CARD_ON_CLICK_HANDLERS} />
+        <BottomFixContent />
       </S.PageWrapper>
     </>
   );
