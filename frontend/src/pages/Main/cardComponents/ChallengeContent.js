@@ -1,6 +1,10 @@
 import React, { useContext, useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { AccountContext, ChallengeContext } from '../../../contexts';
+import {
+  AccountContext,
+  UserContext,
+  ChallengeContext,
+} from '../../../contexts';
 
 // Import Swiper styles
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -13,6 +17,7 @@ import { LoadingWithText } from '../../../components';
 
 const ChallengeContent = () => {
   const { userId: myId } = useContext(AccountContext);
+  const { myData } = useContext(UserContext);
   const { challengeData } = useContext(ChallengeContext);
   const [isChallengeLoading, setIsChallengeLoading] = useState(true);
 
@@ -22,10 +27,7 @@ const ChallengeContent = () => {
     }
   }, [challengeData]);
 
-  const remainingDays = calculateRemainingDays(
-    challengeData?.startDate,
-    challengeData?.duration,
-  );
+  const remainingDays = calculateRemainingDays(challengeData?.endDate);
 
   const matesWithoutMe = challengeData?.mates?.filter(
     mate => mate?.userId !== myId,
@@ -34,70 +36,65 @@ const ChallengeContent = () => {
   const matesNames = matesWithoutMe?.map(mate => mate?.userName).join(', ');
 
   const sliderBox = [
-    <SlideContent $isSingleLine={true}>
+    <SlideContent $isSingleLine={true} key="slider-wake-up-time">
       매일 아침{' '}
       <HighlightText>
         {challengeData.wakeTime?.split(':')?.slice(0, 2)?.join(':')}
       </HighlightText>
       에 일어나요
     </SlideContent>,
-    <SlideContent $isSingleLine={matesWithoutMe?.length === 1}>
-      {' '}
-      <HighlightText>{matesNames}</HighlightText>
-      {' 과(와) 함께 하고 있어요'}
-    </SlideContent>,
-    <SlideContent $isSingleLine={true}>
+    matesWithoutMe?.length === 0 ? (
+      <SlideContent $isSingleLine={true} key="slider-challenge-members">
+        <HighlightText>{myData?.userName}</HighlightText>님 혼자서 도전 중이에요
+      </SlideContent>
+    ) : (
+      <SlideContent
+        $isSingleLine={matesWithoutMe?.length === 1}
+        key="slider-challenge-members"
+      >
+        <HighlightText>{matesNames}</HighlightText>
+        {' 과(와) 함께 하고 있어요'}
+      </SlideContent>
+    ),
+    <SlideContent $isSingleLine={true} key="slider-end-date">
       완료까지 <HighlightText>{remainingDays}일</HighlightText> 남았어요
     </SlideContent>,
   ];
 
-  function calculateRemainingDays(startDate, duration) {
-    // 시작일 객체 생성
-    var start = new Date(startDate);
+  function calculateRemainingDays(endDate) {
+    let end = new Date(endDate);
+    let currentDate = new Date();
 
-    // 종료일 객체 생성
-    var end = new Date(start);
-    end.setDate(end.getDate() + duration);
-
-    // 현재 날짜 객체 생성
-    var currentDate = new Date();
-
-    // 종료일과 현재 날짜 사이의 차이를 계산하여 일 수로 반환
-    var remainingDays = Math.ceil((end - currentDate) / (1000 * 60 * 60 * 24));
+    let remainingDays = Math.ceil((end - currentDate) / (1000 * 60 * 60 * 24));
 
     return remainingDays - 1;
   }
 
-  return (
-    <>
-      {isChallengeLoading ? (
-        <LoadingWrapper>
-          <LoadingWithText />
-        </LoadingWrapper>
-      ) : (
-        <Swiper
-          // autoplay={{ delay: 1000 }} //3초
-          // loop={true} //반복
-          spaceBetween={50}
-          // onSwiper={swiper => console.log(swiper)}
-          pagination={{
-            dynamicBullets: true,
-            bulletClass: 'swiper-pagination-bullet', // bullet의 클래스명
-          }}
-          modules={[Pagination]}
-          className="mySwiper"
-        >
-          {sliderBox.map((challenge, index) => (
-            <SwiperSlide key={index}>
-              <Wrapper>
-                <ChallengeTitle>진행 중 챌린지</ChallengeTitle>
-                {challenge}
-              </Wrapper>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      )}
-    </>
+  return isChallengeLoading ? (
+    <LoadingWrapper>
+      <LoadingWithText />
+    </LoadingWrapper>
+  ) : (
+    <Swiper
+      // autoplay={{ delay: 1000 }} //3초
+      // loop={true} //반복
+      spaceBetween={50}
+      pagination={{
+        dynamicBullets: true,
+        bulletClass: 'swiper-pagination-bullet', // bullet의 클래스명
+      }}
+      modules={[Pagination]}
+      className="mySwiper"
+    >
+      {sliderBox.map((challenge, index) => (
+        <SwiperSlide key={index}>
+          <Wrapper>
+            <ChallengeTitle>진행 중 챌린지</ChallengeTitle>
+            {challenge}
+          </Wrapper>
+        </SwiperSlide>
+      ))}
+    </Swiper>
   );
 };
 
