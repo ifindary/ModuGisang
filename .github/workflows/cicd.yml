@@ -105,6 +105,7 @@ jobs:
             nvm use 22 && \
             cd /home/$EC2_USER/cicd && \
             npm ci && \
-            pm2 log
+            pm2 kill && \
+            pm2 start dist/main.js --name Final
             '
           "
