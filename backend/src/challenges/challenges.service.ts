@@ -88,10 +88,12 @@ export class ChallengesService {
     this.validateStartAndWakeTime(challenge.startDate, challenge.wakeTime);
     this.validateDuration(challenge.duration);
 
-    const editChall = await this.challengeRepository.findOne({
-      where: { _id: challenge.challengeId },
-    });
-
+    let editChall = await this.redisCheckChallenge(challenge.challengeId);
+    if (!editChall) {
+      editChall = await this.challengeRepository.findOne({
+        where: { _id: challenge.challengeId },
+      });
+    }
     if (!editChall) {
       throw new NotFoundException(
         `Challenge with ID ${challenge.challengeId} not found`,
@@ -271,14 +273,12 @@ export class ChallengesService {
   async getChallengeInfo(
     challengeId: number,
   ): Promise<ChallengeResponseDto | null> {
-    const cacheKey = `challenge_${challengeId}`;
-
     if (challengeId > 0) {
       // 캐시에서 데이터 가져오기 시도
-      const cachedChallenge = await this.redisCacheService.get(cacheKey);
+      const cachedChallenge = await this.redisCheckChallenge(challengeId);
       console.log(cachedChallenge);
       if (cachedChallenge) {
-        return JSON.parse(cachedChallenge) as ChallengeResponseDto;
+        return cachedChallenge as ChallengeResponseDto;
       }
     }
 
@@ -288,7 +288,7 @@ export class ChallengesService {
     });
 
     if (!challenge) {
-      return null; // 챌린지가 없으면 null 반환
+      throw new NotFoundException(`Challenge with ID ${challengeId} not found`);
     }
 
     // 해당 챌린지 ID를 가진 모든 사용자 검색
@@ -301,7 +301,16 @@ export class ChallengesService {
       userId: user._id,
       userName: user.userName,
     }));
+    const challengeResponse = this.cacheSetChallege(challenge, participantDtos);
+    console.log(challengeResponse);
 
+    return challengeResponse;
+  }
+
+  async cacheSetChallege(
+    challenge: Challenges,
+    participantDtos: ParticipantDto[],
+  ) {
     const challengeResponse: ChallengeResponseDto = {
       challengeId: challenge._id,
       startDate: challenge.startDate,
@@ -309,21 +318,21 @@ export class ChallengesService {
       hostId: challenge.hostId,
       wakeTime: challenge.wakeTime,
       duration: challenge.duration,
+      completed: challenge.completed,
+      deleted: challenge.deleted,
       mates: participantDtos,
     };
 
-    if (challengeId > 0) {
+    if (challenge._id > 0) {
       // 결과를 캐시에 저장
       await this.redisCacheService.set(
-        cacheKey,
+        `challenge_${challenge._id}`,
         JSON.stringify(challengeResponse),
         parseInt(process.env.REDIS_CHALLENGE_EXP),
       ); // 10분 TTL
     }
-
     return challengeResponse;
   }
-
   // async getChallengeInfo(
   //   challengeId: number,
   // ): Promise<ChallengeResponseDto | null> {
@@ -453,9 +462,14 @@ export class ChallengesService {
   }
 
   async setWakeTime(setChallengeWakeTimeDto): Promise<void> {
-    const challengeValue = await this.challengeRepository.findOne({
-      where: { _id: setChallengeWakeTimeDto.challengeId },
-    });
+    let challengeValue = await this.redisCheckChallenge(
+      setChallengeWakeTimeDto.challengeId,
+    );
+    if (!challengeValue) {
+      challengeValue = await this.challengeRepository.findOne({
+        where: { _id: setChallengeWakeTimeDto.challengeId },
+      });
+    }
     if (!challengeValue) {
       throw new NotFoundException(
         `Challenge with ID ${setChallengeWakeTimeDto.challengeId} not found`,
@@ -476,9 +490,12 @@ export class ChallengesService {
     challengeId: number,
     userId: number,
   ): Promise<boolean> {
-    const challenge = await this.challengeRepository.findOne({
-      where: { _id: challengeId },
-    });
+    let challenge = await this.redisCheckChallenge(challengeId);
+    if (!challenge) {
+      challenge = await this.challengeRepository.findOne({
+        where: { _id: challengeId },
+      });
+    }
     if (!challenge) {
       throw new NotFoundException(`Challenge with ID ${challengeId} not found`);
     }
