@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { LoadingWithText, LongBtn, InputLineWithFocus } from '../../components';
+import { LoadingWithText, LongBtn, InputLine } from '../../components';
 import useAuth from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import * as S from '../../styles/common';
@@ -10,14 +10,13 @@ const Signin = () => {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [isLoginLoading, setIsLoginLoading] = useState(false);
-  const [isEmailFocused, setIsEmailFocused] = useState(false);
-  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
   const { handleSubmitLogIn } = useAuth();
   const navigate = useNavigate();
 
   const passwordInputRef = useRef(null);
   const emailInputRef = useRef(null);
-  const spacerRef = useRef(null);
 
   const handleLoginEmailChange = e => {
     setLoginEmail(e.target.value);
@@ -39,28 +38,23 @@ const Signin = () => {
   const handleKeyDownPassword = async e => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      await handleSubmitLogIn({
-        e,
-        loginEmail,
-        loginPassword,
-        setIsLoginLoading,
-      });
+      if (passwordInputRef.current) {
+        passwordInputRef.current.blur();
+      }
     }
   };
 
-  const handleEmailFocus = () => {
-    setIsEmailFocused(true);
-    setIsPasswordFocused(false);
-  };
-
-  const handlePasswordFocus = () => {
-    setIsPasswordFocused(true);
-    setIsEmailFocused(false);
-  };
-
-  const handleBlur = () => {
-    setIsEmailFocused(false);
-    setIsPasswordFocused(false);
+  const handleFocus = (inputRef, focusState) => {
+    setIsInputFocused(focusState);
+    if (inputRef.current && focusState) {
+      setIsScrolling(true);
+      inputRef.current.focus();
+      inputRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+      setTimeout(() => setIsScrolling(false), 1000);
+    }
   };
 
   const goToSignUp = () => {
@@ -71,11 +65,15 @@ const Signin = () => {
     navigate('/forgotPassword');
   };
 
-  useEffect(() => {
-    if (isEmailFocused || isPasswordFocused) {
-      spacerRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [isEmailFocused, isPasswordFocused]);
+  const handleLoginClick = async e => {
+    if (isScrolling) return;
+    await handleSubmitLogIn({
+      e,
+      loginEmail,
+      loginPassword,
+      setIsLoginLoading,
+    });
+  };
 
   if (isLoginLoading) {
     return (
@@ -92,7 +90,7 @@ const Signin = () => {
         <Title>모두기상</Title>
         <Subtitle>친구와 함께 미라클 모닝 챌린지</Subtitle>
       </TitleBox>
-      <InputLineWithFocus
+      <InputLine
         ref={emailInputRef}
         hasIcon={true}
         type="email"
@@ -101,10 +99,10 @@ const Signin = () => {
         value={loginEmail}
         onChange={handleLoginEmailChange}
         onKeyDown={handleKeyDownEmail}
-        onFocus={handleEmailFocus}
-        onBlur={handleBlur}
+        onFocus={() => handleFocus(emailInputRef, true)}
+        onBlur={() => handleFocus(emailInputRef, false)}
       />
-      <InputLineWithFocus
+      <InputLine
         ref={passwordInputRef}
         hasIcon={true}
         type="password"
@@ -113,18 +111,11 @@ const Signin = () => {
         value={loginPassword}
         onChange={handleLoginPasswordChange}
         onKeyDown={handleKeyDownPassword}
-        onFocus={handlePasswordFocus}
-        onBlur={handleBlur}
+        onFocus={() => handleFocus(passwordInputRef, true)}
+        onBlur={() => handleFocus(passwordInputRef, false)}
       />
       <LongBtn
-        onClickHandler={async e =>
-          await handleSubmitLogIn({
-            e,
-            loginEmail,
-            loginPassword,
-            setIsLoginLoading,
-          })
-        }
+        onClickHandler={handleLoginClick}
         type="submit"
         btnName="로그인"
       />
@@ -133,7 +124,7 @@ const Signin = () => {
         <Divider>|</Divider>
         <AuthButton onClick={goToSignUp}>회원가입</AuthButton>
       </AuthOptions>
-      {(isEmailFocused || isPasswordFocused) && <Spacer ref={spacerRef} />}{' '}
+      <Spacer isVisible={isInputFocused} />
     </S.PageWrapper>
   );
 };
@@ -202,5 +193,6 @@ const iconStyle = {
 };
 
 const Spacer = styled.div`
-  height: 300px;
+  height: ${props => (props.isVisible ? '300px' : '0px')};
+  transition: height 1s ease-in-out;
 `;
