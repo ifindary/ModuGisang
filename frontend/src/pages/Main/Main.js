@@ -1,7 +1,6 @@
 import React, { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext, ChallengeContext, AccountContext } from '../../contexts';
-import useCheckTime from '../../hooks/useCheckTime';
 import usePermissionCheck from '../../hooks/usePermissionCheck';
 import BottomFixContent from './cardComponents/BottomFixContent';
 import { NavBar, OutlineBox, LoadingWithText } from '../../components';
@@ -10,7 +9,6 @@ import {
   InvitationsContent,
   ChallengeContent,
 } from './cardComponents';
-import BottomFixContent from './cardComponents/BottomFixContent';
 import { CARD_TYPES, CARD_STYLES } from './DATA';
 
 import { Capacitor } from '@capacitor/core';
