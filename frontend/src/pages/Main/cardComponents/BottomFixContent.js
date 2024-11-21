@@ -1,26 +1,38 @@
 import React, { useState, useEffect, useContext } from 'react';
-import styled from 'styled-components';
+import { ChallengeContext, UserContext } from '../../../contexts';
+import useCheckTime from '../../../hooks/useCheckTime';
 import EnterContent from './EnterContent';
 import CreateContent from './CreateContent';
 import { Icon } from '../../../components';
-// import { Timer } from '../../InGame/components/Nav';
 
 import { LoadingWithText } from '../../../components';
-import { ChallengeContext, UserContext } from '../../../contexts';
+import styled from 'styled-components';
 
-const BottomFixContent = ({ onClickHandler }) => {
-  const challengeData = useContext(ChallengeContext);
-  const challengeId = useContext(UserContext).challengeId;
-  const wakeTime = challengeData?.challengeData?.wakeTime;
+const BottomFixContent = () => {
+  const { checkTime } = useCheckTime();
+  const { challengeId } = useContext(UserContext);
+  const { challengeData } = useContext(ChallengeContext);
+
+  const [wakeTime, setWakeTime] = useState(challengeData?.wakeTime);
+  const [diffDays, setDiffDays] = useState(null);
   const [timeLeft, setTimeLeft] = useState(null);
   const [isChallengeIdLoading, setIsChallengeIdLoading] = useState(true);
 
   useEffect(() => {
-    // challengeData가 로드된 후에 로딩 상태를 해제
-    if (challengeId !== null) {
-      setIsChallengeIdLoading(false);
-    }
-  }, [challengeData, challengeId]);
+    if (!challengeId) return;
+    setIsChallengeIdLoading(false);
+  }, [challengeId]);
+
+  useEffect(() => {
+    if (!challengeData?.wakeTime) return;
+    setWakeTime(challengeData.wakeTime);
+
+    const { diffDays } = checkTime(
+      challengeData?.startDate,
+      challengeData?.wakeTime,
+    );
+    setDiffDays(diffDays);
+  }, [challengeData]);
 
   useEffect(() => {
     if (!wakeTime) return; // wakeTime이 없으면 실행하지 않음
@@ -76,25 +88,32 @@ const BottomFixContent = ({ onClickHandler }) => {
             {/* <Icon icon={'smile'} iconStyle={iconStyleSample} /> */}
           </IconWrapper>
 
-          <CreateContent onClickHandler={onClickHandler.create} />
+          <CreateContent />
         </>
       ) : (
         <>
           <TimeDisplay>
             <TimeTitleWrapper>
-              <Icon icon={'timer'} iconStyle={iconStyleSample} />
+              <Icon icon="timer" iconStyle={iconStyleSample} />
               <TimeTitle>기상까지 남은 시간</TimeTitle>
             </TimeTitleWrapper>
             <SeperateLine />
             <Timer>
-              <TimerText>{timeLeft?.split(':')[0]}</TimerText>
-              {timeLeft && <TimerText2>:</TimerText2>}
-              <TimerText>{timeLeft?.split(':')[1]}</TimerText>
-              {timeLeft && <TimerText2>:</TimerText2>}
-              <TimerText>{timeLeft?.split(':')[2]}</TimerText>
+              {diffDays ? (
+                <TimerText>D-{diffDays}일 </TimerText>
+              ) : (
+                <>
+                  {' '}
+                  <TimerText>{timeLeft?.split(':')[0]}</TimerText>
+                  {timeLeft && <TimerText2>:</TimerText2>}
+                  <TimerText>{timeLeft?.split(':')[1]}</TimerText>
+                  {timeLeft && <TimerText2>:</TimerText2>}
+                  <TimerText>{timeLeft?.split(':')[2]}</TimerText>
+                </>
+              )}
             </Timer>
           </TimeDisplay>
-          <EnterContent onClickHandler={onClickHandler.enter} />
+          <EnterContent />
         </>
       )}
     </Wrapper>
