@@ -1,9 +1,32 @@
 const useCheckTime = () => {
-  const checkTime = wakeTime => {
-    if (wakeTime === undefined)
-      return { isTooEarly: false, isTooLate: false, remainingTime: 0 };
+  const checkTime = (startDate, wakeTime) => {
+    const result = {
+      isTooEarly: false,
+      isTooLate: false,
+      remainingTime: -1,
+      diffDays: null,
+    };
+    if (startDate === undefined || wakeTime === undefined) return result;
 
     const now = new Date();
+    const startDateDate = new Date(startDate);
+
+    const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startDateNormalized = new Date(
+      startDateDate.getFullYear(),
+      startDateDate.getMonth(),
+      startDateDate.getDate(),
+    );
+
+    // 현재 날짜가 시작일보다 이전인 경우 날짜만 비교하여 return
+    if (nowDate < startDateNormalized) {
+      const diffTime = startDateDate.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      return { ...result, diffDays };
+    }
+
+    // 현재 날짜가 시작일 당일이거나 이후인 경우, 시간을 비교
     const wakeTimeDate = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -33,7 +56,11 @@ const useCheckTime = () => {
 
     const remainingTime = wakeTimeDate.getTime() - now.getTime();
 
-    return { isTooEarly, isTooLate, remainingTime };
+    result.isTooEarly = isTooEarly;
+    result.isTooLate = isTooLate;
+    result.remainingTime = remainingTime;
+
+    return result;
   };
 
   return { checkTime };
