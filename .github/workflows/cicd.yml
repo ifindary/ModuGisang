@@ -3,7 +3,6 @@ name: CI/CD
 on:
   push:
     branches:
-      - backend/cicd
       - dev-v2
     paths:
       - "backend/**"
