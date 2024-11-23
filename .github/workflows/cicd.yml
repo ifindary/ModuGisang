@@ -99,8 +99,8 @@ jobs:
             pm2 start dist/main.js --name Final && \
             cd .. && \
 
-            rsync -avz -e 'ssh -i modugisang.pem' /home/$EC2_USER/cicd/dist $EC2_USER@$EC2_MAIN_HOST:/home/$EC2_USER/cicd/
-            ssh -i modugisang.pem $EC2_USER@$EC2_MAIN_HOST '
+            rsync -avz -e 'ssh -i /home/ubuntu/modugisang.pem' /home/$EC2_USER/cicd/dist $EC2_USER@$EC2_MAIN_HOST:/home/$EC2_USER/cicd/
+            ssh -i /home/ubuntu/modugisang.pem $EC2_USER@$EC2_MAIN_HOST '
               source /home/$EC2_USER/.nvm/nvm.sh && \
               nvm use 22 && \
               cd /home/$EC2_USER/cicd && \
