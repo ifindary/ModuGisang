@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - backend/cicd
+      - dev-v2
     paths:
       - "backend/**"
 
@@ -93,12 +94,6 @@ jobs:
           ssh -i ec2_key.pem $EC2_USER@$EC2_HOST "
             source /home/$EC2_USER/.nvm/nvm.sh && \
             nvm use 22 && \
-            cd /home/$EC2_USER/cicd && \
-            npm ci && \
-            pm2 delete Final && \
-            pm2 start dist/main.js --name Final && \
-            cd .. && \
-
             rsync -avz -e 'ssh -i /home/$EC2_USER/modugisang.pem' /home/$EC2_USER/cicd/dist $EC2_USER@$EC2_MAIN_HOST:/home/$EC2_USER/cicd/
             ssh -i /home/$EC2_USER/modugisang.pem $EC2_USER@$EC2_MAIN_HOST '
               source /home/$EC2_USER/.nvm/nvm.sh && \
