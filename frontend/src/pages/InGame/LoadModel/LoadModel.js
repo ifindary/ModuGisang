@@ -157,7 +157,7 @@ const LoadModel = () => {
 
       // 모든 현재 접속자가 ready 상태인지 확인
       const allReady =
-        currentMates.length > 0 &&
+        currentMates.length >= 0 &&
         currentMates.every(mate => matesReadyStatus?.[mate.userId]?.ready);
 
       // 프로그레스바 업데이트
