@@ -1,14 +1,17 @@
 import React, { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext, ChallengeContext, AccountContext } from '../../contexts';
+import usePermissionCheck from '../../hooks/usePermissionCheck';
+import BottomFixContent from './cardComponents/BottomFixContent';
 import { NavBar, OutlineBox, LoadingWithText } from '../../components';
 import {
   StreakContent,
   InvitationsContent,
   ChallengeContent,
 } from './cardComponents';
-import BottomFixContent from './cardComponents/BottomFixContent';
 import { CARD_TYPES, CARD_STYLES } from './DATA';
+
+import { Capacitor } from '@capacitor/core';
 
 import styled from 'styled-components';
 import * as S from '../../styles/common';
@@ -19,6 +22,8 @@ const Main = () => {
   const { accessToken, userId } = useContext(AccountContext);
   const { challengeId, getMyData } = useContext(UserContext);
   const { challengeData } = useContext(ChallengeContext);
+  const { requestMicrophonePermission, requestCameraPermission } =
+    usePermissionCheck();
 
   const hasChallenge = Number(challengeId) !== -1;
 
@@ -42,6 +47,13 @@ const Main = () => {
       getMyData();
     }
   }, [challengeData]);
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform) {
+      requestMicrophonePermission();
+      requestCameraPermission();
+    }
+  }, []);
 
   if (!userId || !challengeData)
     return (
