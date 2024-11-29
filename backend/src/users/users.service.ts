@@ -4,6 +4,7 @@ import {
   NotFoundException,
   UnauthorizedException,
   InternalServerErrorException,
+  ConflictException,
 } from '@nestjs/common';
 import { Users } from './entities/users.entity';
 import * as argon2 from 'argon2';
@@ -13,10 +14,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Streak } from './entities/streak.entity';
 import RedisCacheService from '../redis-cache/redis-cache.service';
-import { UserInformationDto } from './dto/user-info.dto';
 import { Challenges } from 'src/challenges/challenges.entity';
 import { Invitations } from 'src/invitations/invitations.entity';
-// import { refreshJwtConstants } from 'src/auth/constants';
 
 @Injectable()
 export class UserService {
@@ -43,6 +42,13 @@ export class UserService {
     password: string,
     username: string,
   ): Promise<Users> {
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
+    if (existingUser) {
+      throw new ConflictException('이메일이 존재합니다.');
+    }
+
     const newUser = new Users();
     newUser.userName = username;
     newUser.email = email;
@@ -62,6 +68,9 @@ export class UserService {
     const user = await this.userRepository.findOne({
       where: { email },
     });
+    if (!user) {
+      throw new NotFoundException('존재하지 않는 유저입니다.');
+    }
     return user;
   }
 
@@ -71,13 +80,20 @@ export class UserService {
       where: { email },
       withDeleted: true,
     });
+    if (!user) {
+      throw new NotFoundException('존재하지 않는 유저입니다.');
+    }
     return user;
   }
 
   async findOneByID(_id: number): Promise<Users> {
-    return await this.userRepository.findOne({
+    const user = await this.userRepository.findOne({
       where: { _id },
     });
+    if (!user) {
+      throw new NotFoundException('존재하지 않는 유저입니다.');
+    }
+    return user;
   }
 
   // refreshToken db에 저장
@@ -127,9 +143,7 @@ export class UserService {
     refreshToken: string,
     userId: number,
   ): Promise<UserDto> {
-    const user = await this.userRepository.findOne({
-      where: { _id: userId },
-    });
+    const user = await this.findOneByID(userId);
     const refresh = await this.redisService.get(`refreshToken:${userId}`);
 
     if (!refresh) {
@@ -146,7 +160,7 @@ export class UserService {
         return userDto;
       }
     } catch (error) {
-      throw new UnauthorizedException(error);
+      throw new UnauthorizedException('리프레쉬 토큰이 유효하지 않습니다.');
     }
   }
 
@@ -163,7 +177,6 @@ export class UserService {
   }
 
   async updateAffirm(user: Users, affirmation: string) {
-    console.log(user);
     this.redisService.del(`userInfo:${user._id}`);
     const result = await this.userRepository.update(
       { _id: user._id },
@@ -171,8 +184,13 @@ export class UserService {
         affirmation: affirmation,
       },
     );
-    console.log(result);
-    return result;
+    if (result.affected === 1) {
+      return true;
+    } else {
+      throw new InternalServerErrorException(
+        '확언 업데이트 중 문제가 발생했습니다.',
+      );
+    }
   }
 
   // 유저의 스트릭 데이터 처리 함수
@@ -273,7 +291,9 @@ export class UserService {
 
       return streak;
     } catch (e) {
-      console.log('getStreak error', e);
+      throw new InternalServerErrorException(
+        '스트릭 데이터를 가져오는 동안 오류가 발생했습니다.',
+      );
     }
   }
 
@@ -303,12 +323,7 @@ export class UserService {
   }
 
   async saveOpenviduToken(userId: number, token: string) {
-    const user = await this.userRepository.findOne({
-      where: { _id: userId },
-    });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.findOneByID(userId);
     user.openviduToken = token;
     await this.redisService.del(`userInfo:${userId}`);
     await this.userRepository.save(user);
@@ -317,30 +332,20 @@ export class UserService {
   async redisCheckUser(userId: number) {
     const user = await this.redisService.get(`userInfo:${userId}`);
     if (!user) {
-      console.log('redis에 유저 정보가 없습니다.');
       return null;
     }
-    console.log('redis에 유저 정보가 있습니다.');
     return JSON.parse(user);
   }
 
   async redisSetUser(userId: number, userInformation: any) {
-    const state = await this.redisService.set(
+    await this.redisService.set(
       `userInfo:${userId}`,
       JSON.stringify(userInformation),
       parseInt(this.configService.get<string>('REDIS_USER_INFO_EXP')), // 24시간 동안 해당 유저 정보 redis에 저장
     );
-    if (state !== 'OK') {
-      console.log('redis에 유저 정보 저장 실패');
-    } else {
-      console.log('redis에 유저 정보 저장 성공');
-    }
   }
   async resetChallenge(userId: number) {
-    const user = await this.userRepository.findOne({ where: { _id: userId } });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.findOneByID(userId);
     user.challengeId = -1;
     user.openviduToken = null;
     await this.redisService.del(`userInfo:${userId}`);
@@ -355,7 +360,7 @@ export class UserService {
     const user = await this.userRepository.findOne({ where: { _id: userId } });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException(`${user.userName} 유저를 찾을 수 없습니다.`);
     }
 
     // 해당 메달의 수를 증가시킵니다.
@@ -379,6 +384,9 @@ export class UserService {
 
   async verifyUserPassword(user: Users, password: string) {
     const isPasswordMatching = await argon2.verify(user.password, password);
+    if (!isPasswordMatching) {
+      throw new BadRequestException('비밀번호가 일치하지 않습니다.');
+    }
     return isPasswordMatching;
   }
 
@@ -421,14 +429,17 @@ export class UserService {
 
     // 유저 소프트 삭제
     const result = await this.userRepository.softDelete({ _id: userId });
-    return result.affected;
+    if (result.affected === 1) {
+      return true;
+    } else {
+      throw new InternalServerErrorException('회원 DB 삭제 실패');
+    }
   }
 
   // 유저 복구하는 함수 (혹시 몰라서 만듦)
   async restoreUser(userId: number): Promise<void> {
     const result = await this.userRepository.restore(userId);
     const user = await this.userRepository.findOne({ where: { _id: userId } });
-    console.log('USER IS', user);
     const cacheKey = `challenge_${user.challengeId}`;
 
     await this.redisService.del(cacheKey);
@@ -439,7 +450,6 @@ export class UserService {
   }
 
   async searchEmail(name: string) {
-    console.log(name);
     const result = await this.userRepository.find({
       where: { userName: name },
       select: ['email'],
@@ -448,21 +458,20 @@ export class UserService {
     return result;
   }
 
-  async changeTmpPassword(email: string) {
-    const user = await this.userRepository.findOne({
-      where: { email: email },
-    });
-
-    if (!user) {
-      return null;
+  checkAffirmation(affirmation: string) {
+    if (affirmation === '') {
+      throw new BadRequestException('확언 값이 없습니다.');
     }
+  }
+
+  async changeTmpPassword(email: string) {
+    const user = await this.findUser(email);
 
     const tmpPassword = Math.random().toString(36).slice(2);
 
     user.password = await argon2.hash(tmpPassword);
     await this.userRepository.save(user);
 
-    console.log('tmpPW : ', tmpPassword);
     return tmpPassword;
   }
 
@@ -471,40 +480,40 @@ export class UserService {
     const updatedPassword = await this.userRepository.update(userId, {
       password: hashedPassword,
     });
-    return updatedPassword.affected === 1;
+    if (updatedPassword.affected === 1) {
+      return true;
+    } else {
+      throw new InternalServerErrorException(
+        '비밀번호 변경 중 문제가 발생했습니다.',
+      );
+    }
   }
 
   checkPWformat(pw: string): any {
     // 최소 8자 이상
     if (pw.length < 8) {
-      return { success: false, message: '비밀번호는 8자 이상이어야 합니다.' };
+      throw new BadRequestException('비밀번호는 8자 이상이어야 합니다.');
     }
 
     // 영문 포함
     if (!/[a-zA-Z]/.test(pw)) {
-      return {
-        success: false,
-        message: '비밀번호는 영문을 1개 이상 포함해야 합니다.',
-      };
+      throw new BadRequestException(
+        '비밀번호는 영문을 1개 이상 포함해야 합니다.',
+      );
     }
 
     // 숫자 포함
     if (!/\d/.test(pw)) {
-      return {
-        success: false,
-        message: '비밀번호는 숫자를 1개 이상 포함해야 합니다.',
-      };
+      throw new BadRequestException(
+        '비밀번호는 숫자를 1개 이상 포함해야 합니다.',
+      );
     }
 
     // 특수문자 포함
     if (!/[!@#~$%^&*()₩`_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw)) {
-      return {
-        success: false,
-        message: '비밀번호는 특수문자를 1개 이상 포함해야 합니다.',
-      };
+      throw new BadRequestException(
+        '비밀번호는 특수문자를 1개 이상 포함해야 합니다.',
+      );
     }
-
-    // 모든 조건을 만족하면 true 반환
-    return { success: true, message: '비밀번호가 유효합니다.' };
   }
 }

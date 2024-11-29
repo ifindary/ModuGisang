@@ -38,15 +38,15 @@ export class ChallengesController {
   ): Promise<ChallengeResponseDto> {
     const challenge = await this.challengeService.getChallengeInfo(challengeId);
     if (!challenge) {
-      throw new NotFoundException(`Challenge with ID ${challengeId} not found`);
+      throw new NotFoundException(
+        `${challengeId}의 챌린지를 찾을 수 없습니다.`,
+      );
     }
     return challenge;
   }
 
   @Post('create')
   async createChallenge(@Body() createChallengeDto: CreateChallengeDto) {
-    console.log('create');
-    console.log(createChallengeDto);
     if (createChallengeDto.mates.length > 4) {
       throw new BadRequestException('챌린지 참여 인원이 초과되었습니다.');
     }
@@ -88,7 +88,6 @@ export class ChallengesController {
       }
 
       // 예상치 못한 에러
-      console.error('Unexpected error:', error);
       throw new InternalServerErrorException(
         '챌린지 생성 중 오류가 발생했습니다.',
       );
@@ -97,7 +96,6 @@ export class ChallengesController {
 
   @Post('edit')
   async editChallenge(@Body() editChallengeDto: EditChallengeDto) {
-    console.log('edit');
     const challenge =
       await this.challengeService.editChallenge(editChallengeDto);
     return challenge;
@@ -108,7 +106,6 @@ export class ChallengesController {
     @Param('challengeId') challengeId: number,
     @Param('hostId') hostId: number,
   ) {
-    console.log(challengeId);
     const deleteChallengeResult = await this.challengeService.deleteChallenge(
       challengeId,
       hostId,
@@ -140,13 +137,12 @@ export class ChallengesController {
     if (result === true) {
       return {
         completed: true,
-        message:
-          'This challenge has completed and user data has been successfully updated.',
+        message: '챌린지가 완료되어 유저 정보가 수정되었습니다.',
       };
     } else {
       return {
         completed: false,
-        message: 'This challenge is not completed yet.',
+        message: '챌린지가 완료되지 않았습니다.',
       };
     }
   }
@@ -165,7 +161,6 @@ export class ChallengesController {
 
   @Get('invitations')
   getInvitations(@Query('guestId') guestId: number) {
-    console.log(guestId);
     const invitations = this.challengeService.getInvitations(guestId);
     return invitations; // 데이터 반환 값 수정 예정
   }
@@ -177,7 +172,7 @@ export class ChallengesController {
     if (result.success === true) {
       return 'accept';
     } else {
-      throw new BadRequestException('승낙 실패');
+      throw new BadRequestException('챌린지 초대 승낙 실패');
     }
   }
 
@@ -203,20 +198,22 @@ export class ChallengesController {
     } catch (error) {
       if (error.message === 'Attendance does not exist') {
         throw new NotFoundException(
-          'No attendance records found for the given user and date',
+          '해당 사용자 및 날짜에 대한 출석 기록이 없습니다.',
         );
       }
       if (error.message === 'No challenge found for the user.') {
-        throw new NotFoundException('No challenge found for the given user');
+        throw new NotFoundException(
+          '해당 사용자에 대한 챌린지를 찾을 수 없습니다.',
+        );
       }
-      throw new InternalServerErrorException('An unexpected error occurred');
+      throw new InternalServerErrorException(
+        '서버에서 예상치 못한 오류가 발생했습니다.',
+      );
     }
   }
 
   @Post('/changeWakeTime')
   async setChallengeWakeTime(@Body() setChallengeWakeTimeDto): Promise<void> {
-    console.log('기상시간 변경완료');
-    console.log(setChallengeWakeTimeDto);
     try {
       await this.challengeService.setWakeTime(setChallengeWakeTimeDto);
     } catch (error) {
@@ -236,20 +233,13 @@ export class ChallengesController {
     @Param('userId') userId: number,
   ) {
     try {
-      console.log(
-        `Starting challengeGiveUp for challengeId: ${challengeId}, userId: ${userId}`,
-      );
       // 챌린지 포기 로직 실행
       await this.challengeService.challengeGiveUp(challengeId, userId);
-      console.log(
-        `Successfully gave up challenge with ID ${challengeId} for user ${userId}`,
-      );
       return { status: 200, message: ' 성공' };
     } catch (error) {
-      console.error(`Error in challengeGiveUp: ${error.message}`);
       return {
         status: error.status || 500,
-        message: error.message || 'An unexpected error occurred.',
+        message: error.message || '서버에서 예상치 못한 오류가 발생했습니다.',
       };
     }
   }

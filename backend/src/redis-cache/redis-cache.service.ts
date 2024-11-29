@@ -21,6 +21,11 @@ export class RedisCacheService {
   async set(key: string, value: string, ttl?: number): Promise<string> {
     const result = await this.redis.set(key, value, 'EX', ttl ?? 100000);
     this.logger.log(`Cache set for key: ${key} with TTL: ${ttl ?? 100000}`);
+    if (result !== 'OK') {
+      this.logger.log('redis에 유저 정보 저장 실패');
+    } else {
+      this.logger.log('redis에 유저 정보 저장 성공');
+    }
     return result; // 'OK'가 반환됩니다.
   }
 

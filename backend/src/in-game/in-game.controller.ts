@@ -52,11 +52,6 @@ export class InGameController {
     @Req() req,
     @Res() res,
   ) {
-    console.log(
-      '@@@@AuthenticateGuard/req.user.challengeId@@@@',
-      req.user.challengeId,
-    );
-    console.log('@@@AuthenticateGuard/challengeId', challengeId);
     // const challengeId = req.user.challengeId;
     const results = await this.inGameService.getGameResults(
       Number(challengeId),

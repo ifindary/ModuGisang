@@ -1,20 +1,15 @@
 import {
   Body,
   Controller,
-  Request,
   Post,
   UseGuards,
   Param,
-  Query,
   Get,
   ParseIntPipe,
   Res,
   Req,
   HttpStatus,
   BadRequestException,
-  NotFoundException,
-  UnauthorizedException,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { UserService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -37,13 +32,8 @@ export class UserController {
   @UseGuards(AuthenticateGuard)
   @Get('me')
   async myData(@Req() req) {
-    console.log(req.user);
-    console.log('typeof req.user._id', typeof req.user._id);
     const userId = req.user._id;
     const user = await this.userService.findOneByID(userId);
-    if (!user) {
-      throw new NotFoundException('존재하지 않는 유저입니다.');
-    }
     const streaks = await this.userService.getCurrentStreak(userId);
     const invitations = await this.userService.getInviationsCount(userId);
 
@@ -72,22 +62,8 @@ export class UserController {
       return redisCheckUserInfo;
     } else {
       const user = await this.userService.findOneByID(userId);
-      if (!user) {
-        throw new NotFoundException('존재하지 않는 유저입니다.');
-      }
       const streaks = await this.userService.getCurrentStreak(userId);
-      if (!streaks) {
-        throw new InternalServerErrorException(
-          '스트릭을 가져오는데 오류가 발생했습니다.',
-        );
-      }
-
       const invitations = await this.userService.getInviationsCount(userId);
-      if (!invitations) {
-        throw new InternalServerErrorException(
-          '초대장을 가져오는데 오류가 발생했습니다.',
-        );
-      }
       const lastActiveDate = streaks.lastActiveDate;
       const isCountinue = this.userService.isContinuous(lastActiveDate);
 
@@ -119,48 +95,23 @@ export class UserController {
     @Body('affirmation') affirmation: string,
     @Res() res,
   ) {
-    if (affirmation === '') {
-      throw new BadRequestException('확언 값이 없습니다.');
-    }
+    this.userService.checkAffirmation(affirmation);
     const user = await this.userService.findOneByID(userId);
-    const result = await this.userService.updateAffirm(user, affirmation);
-    if (result.affected > 0) {
-      return res.status(HttpStatus.OK).json({ suceess: true });
-    } else {
-      throw new InternalServerErrorException(
-        '확언 업데이트 중 문제가 발생했습니다.',
-      );
-    }
+    await this.userService.updateAffirm(user, affirmation);
+    return res.status(HttpStatus.OK).json({ suceess: true });
   }
 
   // 계정 삭제 API
   @UseGuards(AuthenticateGuard)
   @Post('delete-user')
   async deleteUser(@Body('password') password: string, @Req() req, @Res() res) {
-    if (!req.user) {
-      throw new UnauthorizedException('인증되지 않은 유저입니다.');
-    }
-
     const user = await this.userService.findOneByID(req.user._id);
-    if (!user) {
-      throw new NotFoundException('존재하지 않는 유저입니다.');
-    }
 
-    const passwordVerified = await this.userService.verifyUserPassword(
-      user,
-      password,
-    );
-    if (!passwordVerified) {
-      throw new BadRequestException('비밀번호가 일치하지 않습니다.');
-    }
+    await this.userService.verifyUserPassword(user, password);
 
     // 삭제 진행
     const deletedUserCount = await this.userService.deleteUser(user);
-    if (deletedUserCount === 1) {
-      return res.status(HttpStatus.OK).json({ suceess: true });
-    } else {
-      throw new InternalServerErrorException('회원 DB 삭제 실패');
-    }
+    return res.status(HttpStatus.OK).json({ suceess: deletedUserCount });
   }
 
   // 계정 복구 API
@@ -181,34 +132,13 @@ export class UserController {
 
     // 유저 이메일과 비밀번호로 유저 2차 검증 후 유저 정보 가져오기
     const user = await this.userService.findUser(req.user.email);
-    if (!user) {
-      throw new NotFoundException('해당 유저가 없습니다.');
-    }
 
-    const isUserVerified = await this.userService.verifyUserPassword(
-      user,
-      oldPassword,
-    );
-    if (!isUserVerified) {
-      throw new UnauthorizedException('현재 비밀번호가 일치하지 않습니다.');
-    }
+    await this.userService.verifyUserPassword(user, oldPassword);
 
-    const verifyPWResult = this.userService.checkPWformat(newPassword);
-    if (!verifyPWResult.success) {
-      throw new BadRequestException(verifyPWResult.message);
-    }
+    this.userService.checkPWformat(newPassword);
 
-    const isPasswordChanged = await this.userService.changePassword(
-      user._id,
-      newPassword,
-    );
+    await this.userService.changePassword(user._id, newPassword);
 
-    if (isPasswordChanged) {
-      return res.status(HttpStatus.OK).json({ suceess: true });
-    } else {
-      throw new InternalServerErrorException(
-        '비밀번호 변경 중 문제가 발생했습니다.',
-      );
-    }
+    return res.status(HttpStatus.OK).json({ suceess: true });
   }
 }
