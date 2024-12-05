@@ -82,6 +82,41 @@ const completeChallenge = async ({ accessToken, challengeId, userId }) => {
   return await API.post(url, {}, config);
 };
 
+const editChallenge = async ({
+  accessToken,
+  challengeId,
+  newChallengeData,
+}) => {
+  const url = `/challenge/edit`;
+  const payload = {
+    challengeId: challengeId,
+    hostId: newChallengeData.hostId,
+    duration: newChallengeData.duration,
+    startDate: newChallengeData.startDate,
+    wakeTime: newChallengeData.wakeTime,
+  };
+  const config = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  };
+  return await API.post(url, payload, config);
+};
+
+const deleteChallenge = async ({ accessToken, challengeId, userId }) => {
+  const url = `/challenge/delete/${challengeId}/${userId}`;
+  const config = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  };
+  return await API.post(url, {}, config);
+};
+
+const giveupChallenge = async ({ accessToken, challengeId, userId }) => {
+  const url = `/challenge/give-up/${challengeId}/${userId}`;
+  const config = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  };
+  return await API.post(url, {}, config);
+};
+
 const getCalendarInfo = async ({ accessToken, userId, month }) => {
   const url = `/challenge/calendar/${userId}/${month}`;
   const config = {
@@ -117,4 +152,7 @@ export const challengeServices = {
   getCalendarInfo,
   getCalendarInfoByDate,
   getConnectionToken,
+  editChallenge,
+  deleteChallenge,
+  giveupChallenge,
 };
