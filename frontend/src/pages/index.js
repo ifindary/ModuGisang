@@ -10,6 +10,7 @@ import CustomerService from './Settings/CustomerService';
 import DeleteUser from './Settings/DeleteUser';
 import ChangePassword from './Settings/ChangePassword';
 import About from './Settings/About';
+import EditChallenge from './Settings/EditChallenge';
 
 export {
   Main,
@@ -17,6 +18,7 @@ export {
   MyStreak,
   JoinChallenge,
   CreateChallenge,
+  EditChallenge,
   Settings,
   PrivacyPolicy,
   TermsOfService,

@@ -13,6 +13,7 @@ import {
   MyStreak,
   CreateChallenge,
   JoinChallenge,
+  EditChallenge,
   Settings,
   PrivacyPolicy,
   TermsOfService,
@@ -51,6 +52,7 @@ function Router() {
               <Route path="/myStreak" element={<MyStreak />} />
               <Route path="/joinChallenge" element={<JoinChallenge />} />
               <Route path="/createChallenge" element={<CreateChallenge />} />
+              <Route path="/editChallenge" element={<EditChallenge />} />
               <Route
                 path="/startMorning"
                 element={
