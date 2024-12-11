@@ -25,7 +25,7 @@ const Settings = () => {
 
   const { getMyData } = useContext(UserContext);
   const user = useContext(UserContext);
-  const { challengeData } = useContext(ChallengeContext);
+  const { challengeData, handleGiveUpChallenge } = useContext(ChallengeContext);
   const { accessToken, userId } = useContext(AccountContext);
 
   const [isLogoutLoading, setIsLogoutLoading] = useState(false);
@@ -81,8 +81,7 @@ const Settings = () => {
 
   const ON_CLICK_HANDLERS = [
     () => {
-      console.log('not host');
-      navigate('/giveUpChallenge');
+      handleGiveUpChallenge();
     },
     () => {
       console.log('host');

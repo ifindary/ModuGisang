@@ -71,6 +71,53 @@ const ChallengeContextProvider = ({ children }) => {
     return response;
   };
 
+  const handleEditChallenge = async ({ newChallengeData }) => {
+    const response = await fetchData(() =>
+      challengeServices.editChallenge({
+        accessToken,
+        challengeId,
+        newChallengeData,
+      }),
+    );
+
+    const {
+      isLoading: isEditChallengeLoading,
+      data: editChallengeData,
+      error: editChallengeError,
+    } = response;
+
+    if (!isEditChallengeLoading && editChallengeData) {
+    } else if (!isEditChallengeLoading && editChallengeError) {
+      console.error(editChallengeError);
+    }
+    return response;
+  };
+
+  const handleGiveUpChallenge = async () => {
+    const response = await fetchData(() =>
+      challengeServices.giveupChallenge({
+        accessToken,
+        challengeId,
+        userId,
+      }),
+    );
+
+    const {
+      isLoading: isGiveUpChallengeLoading,
+      data: giveUpChallengeData,
+      error: giveUpChallengeError,
+    } = response;
+
+    if (!isGiveUpChallengeLoading && giveUpChallengeData) {
+      console.log(response);
+    } else if (!isGiveUpChallengeLoading && giveUpChallengeError) {
+      console.error(giveUpChallengeError);
+    } else {
+      console.log(response);
+    }
+    return response;
+  };
+
   const handleAcceptInvitation = async ({
     accessToken,
     challengeId,
@@ -180,6 +227,8 @@ const ChallengeContextProvider = ({ children }) => {
         setChallengeData,
         getChallengeData,
         handleCreateChallenge,
+        handleGiveUpChallenge,
+        handleEditChallenge,
         handleAcceptInvitation,
       }}
     >
