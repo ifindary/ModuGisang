@@ -572,24 +572,6 @@ const Mission2 = () => {
     };
   };
 
-  const calculatePost2itPosition = (landmarks, index) => {
-    // 비디오 요소의 크기를 가져옴
-    const videoElement = myVideoRef.current;
-    if (!videoElement) return { top: 0, left: 0, size: 0 };
-    const videoRect = videoElement.getBoundingClientRect();
-    const { width: videoWidth, height: videoHeight } = videoRect; // 왼쪽 끝점과 오른쪽 끝점의 x 좌표 차이를 얼굴 너비로 사용
-    const faceWidth =
-      Math.abs(landmarks[123].x - landmarks[352].x) * videoWidth; // 얼굴 너비를 기준으로 포스트잇 크기 조정
-    const resizedSize = faceWidth * 0.3; // 포스트잇을 붙일 랜드마크의 좌표
-    const point = landmarks[index];
-    let { x, y } = point;
-    const absoluteX = x * videoWidth + videoRect.left;
-    const absoluteY = y * videoHeight + videoRect.top; // 포스트잇 중앙 좌표 계산
-    const drawX = absoluteX - resizedSize;
-    const drawY = absoluteY - resizedSize; // 포스트잇의 위치 및 크기 정보 반환
-    return { top: drawY, left: drawX, size: resizedSize };
-  };
-
   return (
     <>
       <MissionStarting />
