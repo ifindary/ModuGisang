@@ -38,7 +38,10 @@ const InGame = () => {
   const { userId: myId } = useContext(AccountContext);
   const { challengeData } = useContext(ChallengeContext);
   const { checkTime } = useCheckTime();
-  const { isTooLate, isTooEarly } = checkTime(challengeData?.wakeTime);
+  const { isTooLate, isTooEarly } = checkTime(
+    challengeData?.startDate,
+    challengeData?.wakeTime,
+  );
   const { inGameMode, isEnteredTimeSent, sendEnteredTime } =
     useContext(GameContext);
   const { myStream, myVideoRef } = useContext(OpenViduContext);

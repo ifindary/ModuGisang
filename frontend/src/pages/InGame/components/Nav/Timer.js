@@ -7,7 +7,10 @@ import styled from 'styled-components';
 const Timer = () => {
   const { challengeData } = useContext(ChallengeContext);
   const { checkTime } = useCheckTime();
-  const { remainingTime } = checkTime(challengeData?.wakeTime);
+  const { remainingTime } = checkTime(
+    challengeData?.startDate,
+    challengeData?.wakeTime,
+  );
 
   const CountDownUI = props => {
     const { formatted, milliseconds, completed } = props;

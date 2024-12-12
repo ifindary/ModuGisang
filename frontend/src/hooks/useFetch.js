@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
+
 const useFetch = () => {
   const navigate = useNavigate();
+
   const fetchData = async callback => {
     const callResponse = {
       isLoading: true,
@@ -8,6 +10,12 @@ const useFetch = () => {
       data: null,
       error: null,
     };
+
+    if (!navigator.onLine) {
+      navigate('/offline');
+      return;
+    }
+
     try {
       const response = await callback();
 
@@ -17,6 +25,7 @@ const useFetch = () => {
     } catch (error) {
       if (!navigator.onLine) {
         navigate('/offline');
+        return;
       } else {
         const message =
           error.response?.data?.message ||

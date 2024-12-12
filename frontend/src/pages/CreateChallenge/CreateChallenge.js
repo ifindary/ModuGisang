@@ -168,12 +168,19 @@ const CreateChallenge = () => {
 
   const handleSubmit = async e => {
     e.preventDefault();
+
+    if (mates.length > 4) {
+      alert('친구는 최대 4명까지 초대 가능합니다.');
+      return;
+    }
+
     const isoWakeTime = convertToISODate(startDate, wakeTime);
     const localStartDate = new Date(
       startDate.getTime() - startDate.getTimezoneOffset() * 60000,
     )
       .toISOString()
       .slice(0, 10);
+
     const response = await handleCreateChallenge({
       newChallengeData: {
         hostId: userId,
