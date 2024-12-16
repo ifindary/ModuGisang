@@ -10,7 +10,9 @@ export class Invitations {
   @PrimaryColumn({ name: 'guest_id' })
   guestId: number;
 
-  @ManyToOne(() => Challenges, (challenge) => challenge.invitations)
+  @ManyToOne(() => Challenges, (challenge) => challenge.invitations, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'challenge_id' })
   challenge: Challenges;
 

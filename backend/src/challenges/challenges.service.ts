@@ -141,12 +141,6 @@ export class ChallengesService {
         `Challenge with ID ${challengeId} has already started so it cannot be deleted.`,
       );
     }
-    const invites = await this.invitaionRepository.find({
-      where: { challengeId: challengeId },
-    });
-    if (invites.length > 0) {
-      await this.invitaionRepository.delete({ challengeId: challengeId });
-    }
     return await this.challengeRepository.delete(challengeId);
   }
 
