@@ -43,7 +43,7 @@ const Signup = () => {
     setEmail(newEmail);
 
     if (newEmail && !isValidEmail(newEmail)) {
-      setEmailError('올바른 이메일 주소를 입력해 주세요.');
+      setEmailError('올바른 이메일 주소를 입력해주세요.');
     } else {
       setEmailError('');
       setIsEmailChecked(false);
@@ -79,6 +79,10 @@ const Signup = () => {
     const newCheckPassword = e.target.value;
     setCheckPassword(newCheckPassword);
   };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     if (checkPassword && password) {

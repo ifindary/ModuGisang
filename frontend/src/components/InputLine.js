@@ -14,6 +14,7 @@ const InputLine = forwardRef(
       onKeyDown,
       onFocus,
       onBlur,
+      onClickHandler,
       disabled,
     },
     ref,
@@ -31,7 +32,7 @@ const InputLine = forwardRef(
           disabled={disabled}
         />
         {hasIcon ? (
-          <IconBox>
+          <IconBox onClick={onClickHandler}>
             <Icon icon={icon} iconStyle={iconStyle} />
           </IconBox>
         ) : null}
