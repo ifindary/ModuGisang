@@ -7,13 +7,12 @@ import {
 } from '@nestjs/common';
 import { Users } from './entities/users.entity';
 import * as argon2 from 'argon2';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 import { UserDto } from '../auth/dto/user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Streak } from './entities/streak.entity';
 import RedisCacheService from '../redis-cache/redis-cache.service';
-import { UserInformationDto } from './dto/user-info.dto';
 import { Challenges } from 'src/challenges/challenges.entity';
 import { Invitations } from 'src/invitations/invitations.entity';
 // import { refreshJwtConstants } from 'src/auth/constants';
@@ -472,6 +471,20 @@ export class UserService {
       password: hashedPassword,
     });
     return updatedPassword.affected === 1;
+  }
+  // 30일 이전에 삭제된 사용자 조회
+  async findUsersDeletedBefore(thresholdDate: Date): Promise<Users[]> {
+    return await this.userRepository.find({
+      where: {
+        deletedAt: LessThan(thresholdDate),
+      },
+    });
+  }
+
+  // 사용자들을 영구 삭제
+  async deleteUsersPermanently(users: Users[]): Promise<void> {
+    const userIds = users.map((user) => user._id); // 삭제 대상 사용자 ID 목록
+    await this.userRepository.delete(userIds); // 영구 삭제
   }
 
   checkPWformat(pw: string): any {
