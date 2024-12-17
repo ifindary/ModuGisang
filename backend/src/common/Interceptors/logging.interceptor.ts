@@ -15,6 +15,11 @@ export class LoggingInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest();
     const { method, url, headers, body } = request;
 
+    // 헬스체크 요청 무시
+    if (headers['user-agent']?.includes('ELB-HealthChecker')) {
+      return next.handle();
+    }
+
     // 요청 정보 로깅
     winstonLogger.log(`Request Method: ${method} URL: ${url}`, {
       headers: filterSensitiveInfo(headers),
