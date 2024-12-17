@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { Challenges } from './challenges.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -46,6 +47,7 @@ export class ChallengesService {
   ) {
     this.challengeRepository = challengeRepository;
   }
+  private readonly logger = new Logger(ChallengesService.name);
 
   async createChallenge(challenge: CreateChallengeDto): Promise<Challenges> {
     const user = await this.userService.findOneByID(challenge.hostId);
@@ -83,10 +85,12 @@ export class ChallengesService {
     this.validateStartAndWakeTime(challenge.startDate, challenge.wakeTime);
     this.validateDuration(challenge.duration);
 
-    const editChall = await this.challengeRepository.findOne({
-      where: { _id: challenge.challengeId },
-    });
-
+    let editChall = await this.redisCheckChallenge(challenge.challengeId);
+    if (!editChall) {
+      editChall = await this.challengeRepository.findOne({
+        where: { _id: challenge.challengeId },
+      });
+    }
     if (!editChall) {
       throw new NotFoundException(`해당 챌린지를 찾을 수 없습니다.`);
     }
@@ -112,23 +116,44 @@ export class ChallengesService {
   // 챌린지 삭제 시 30일 정도 생성 못한다면 다시 복구 기능이 필요할 수 있음 -> hard가 아닌 soft delete??
   async deleteChallenge(
     challengeId: number,
-    hostId: number,
-  ): Promise<DeleteResult> {
+    userId: number,
+  ): Promise<{ resetOnly: boolean } | DeleteResult> {
     const challenge = await this.challengeRepository.findOne({
       where: { _id: challengeId },
     });
+
+    // 1. Challenge 존재 여부 확인
     if (!challenge) {
       throw new NotFoundException(`해당 챌린지를 찾을 수 없습니다.`);
     }
-    if (challenge.hostId !== hostId) {
-      throw new BadRequestException(`해당 유저는 챌린지의 호스트가 아닙니다.`);
-    }
+
+    // 2. Challenge 시작 여부 확인
     if (challenge.startDate < new Date()) {
       throw new BadRequestException(
-        `해당 챌린지가 이미 시작되었으므로 삭제할 수 없습니다.`,
+        '해당 챌린지는 이미 시작되어 삭제할 수 없습니다.',
       );
     }
-    return await this.challengeRepository.delete(challengeId);
+
+    // 3. Host 여부에 따라 분기 처리
+    if (challenge.hostId === userId) {
+      // Host 인 경우 Challenge 삭제 및 관련 사용자 초기화
+      const users = await this.userRepository.findBy({
+        challengeId: challengeId,
+      });
+
+      for (const user of users) {
+        await this.userService.resetChallenge(user._id);
+      }
+      this.logger.log(`${userId}가 ${challengeId} 챌린지 삭제`);
+      return await this.challengeRepository.delete(challengeId);
+    } else {
+      // 일반 유저인 경우 Reset만 수행
+      // 초대장은 삭제 안하고 남김
+      await this.userService.resetChallenge(userId);
+      // userId가 챌린지 탈퇴 로그
+      this.logger.log(`${userId}가 ${challengeId} 챌린지 탈퇴`);
+      return { resetOnly: true }; // 삭제하지 않고 리셋만 수행
+    }
   }
 
   async challengeGiveUp(challengeId: number, userId: number): Promise<void> {
@@ -235,13 +260,12 @@ export class ChallengesService {
   async getChallengeInfo(
     challengeId: number,
   ): Promise<ChallengeResponseDto | null> {
-    const cacheKey = `challenge_${challengeId}`;
-
     if (challengeId > 0) {
       // 캐시에서 데이터 가져오기 시도
-      const cachedChallenge = await this.redisCacheService.get(cacheKey);
+      const cachedChallenge = await this.redisCheckChallenge(challengeId);
+      console.log(cachedChallenge);
       if (cachedChallenge) {
-        return JSON.parse(cachedChallenge) as ChallengeResponseDto;
+        return cachedChallenge as ChallengeResponseDto;
       }
     }
 
@@ -251,7 +275,7 @@ export class ChallengesService {
     });
 
     if (!challenge) {
-      return null; // 챌린지가 없으면 null 반환
+      throw new NotFoundException('해당 챌린지는 존재하지 않습니다.');
     }
 
     // 해당 챌린지 ID를 가진 모든 사용자 검색
@@ -263,7 +287,15 @@ export class ChallengesService {
       userId: user._id,
       userName: user.userName,
     }));
+    const challengeResponse = this.cacheSetChallege(challenge, participantDtos);
 
+    return challengeResponse;
+  }
+
+  async cacheSetChallege(
+    challenge: Challenges,
+    participantDtos: ParticipantDto[],
+  ) {
     const challengeResponse: ChallengeResponseDto = {
       challengeId: challenge._id,
       startDate: challenge.startDate,
@@ -271,21 +303,21 @@ export class ChallengesService {
       hostId: challenge.hostId,
       wakeTime: challenge.wakeTime,
       duration: challenge.duration,
+      completed: challenge.completed,
+      deleted: challenge.deleted,
       mates: participantDtos,
     };
 
-    if (challengeId > 0) {
+    if (challenge._id > 0) {
       // 결과를 캐시에 저장
       await this.redisCacheService.set(
-        cacheKey,
+        `challenge_${challenge._id}`,
         JSON.stringify(challengeResponse),
         parseInt(process.env.REDIS_CHALLENGE_EXP),
       ); // 10분 TTL
     }
-
     return challengeResponse;
   }
-
   // async getChallengeInfo(
   //   challengeId: number,
   // ): Promise<ChallengeResponseDto | null> {
@@ -404,9 +436,14 @@ export class ChallengesService {
   }
 
   async setWakeTime(setChallengeWakeTimeDto): Promise<void> {
-    const challengeValue = await this.challengeRepository.findOne({
-      where: { _id: setChallengeWakeTimeDto.challengeId },
-    });
+    let challengeValue = await this.redisCheckChallenge(
+      setChallengeWakeTimeDto.challengeId,
+    );
+    if (!challengeValue) {
+      challengeValue = await this.challengeRepository.findOne({
+        where: { _id: setChallengeWakeTimeDto.challengeId },
+      });
+    }
     if (!challengeValue) {
       throw new NotFoundException(`해당 챌린지를 찾을 수 없습니다.`);
     }
@@ -424,9 +461,12 @@ export class ChallengesService {
     challengeId: number,
     userId: number,
   ): Promise<boolean> {
-    const challenge = await this.challengeRepository.findOne({
-      where: { _id: challengeId },
-    });
+    let challenge = await this.redisCheckChallenge(challengeId);
+    if (!challenge) {
+      challenge = await this.challengeRepository.findOne({
+        where: { _id: challengeId },
+      });
+    }
     if (!challenge) {
       throw new NotFoundException(`해당 챌린지를 찾을 수 없습니다.`);
     }

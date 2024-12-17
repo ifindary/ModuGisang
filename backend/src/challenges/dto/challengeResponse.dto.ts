@@ -5,6 +5,8 @@ export class ChallengeResponseDto {
   wakeTime: Date;
   hostId: number;
   duration: number;
+  completed: boolean;
+  deleted: boolean;
   mates: ParticipantDto[];
 }
 export class ParticipantDto {

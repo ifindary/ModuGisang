@@ -1,4 +1,6 @@
 import React, { useRef, useContext, useEffect, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+
 import styled from 'styled-components';
 import { MissionStarting, MissionEnding } from '../components';
 import { OpenViduContext, GameContext, UserContext } from '../../../contexts';
@@ -22,6 +24,7 @@ const Affirmation = () => {
   const [affirResult, setAffirResult] = useState(false);
   const newTranscriptRef = useRef('');
   const idx = useRef(0);
+  const isNative = Capacitor.isNativePlatform();
 
   useEffect(() => {
     if (inGameMode === 6) {
@@ -74,7 +77,16 @@ const Affirmation = () => {
       {isMissionEnding && <MissionEnding />}
       {isMissionStarting || (
         <Wrapper>
-          <TextArea>{highlightedText}</TextArea>
+          <TextArea>
+            {isNative ? (
+              <>
+                <Description>큰 소리로 외쳐주세요!</Description>
+                <NativeAffirmation>{affirmationText}</NativeAffirmation>
+              </>
+            ) : (
+              highlightedText
+            )}
+          </TextArea>
         </Wrapper>
       )}
     </>
@@ -97,7 +109,11 @@ const TextArea = styled.div`
   bottom: 3px;
   left: 3px;
 
+  gap: 20px;
+
   ${({ theme }) => theme.flex.center}
+
+  flex-direction: column;
   width: calc(100% - 6px);
   height: 30%;
   padding: 15px;
@@ -124,4 +140,14 @@ const Highlighted = styled.b`
 
 const Unhighlighted = styled.b`
   color: grey;
+`;
+
+const Description = styled.b`
+  ${({ theme }) => theme.fonts.IBMmedium};
+  color: ${({ theme }) => theme.colors.primary.white};
+`;
+
+const NativeAffirmation = styled.b`
+  ${({ theme }) => theme.fonts.JuaSmall};
+  color: ${({ theme }) => theme.colors.primary.emerald};
 `;
