@@ -459,8 +459,8 @@ export class UserService {
   }
 
   checkAffirmation(affirmation: string) {
-    if (affirmation === '') {
-      throw new BadRequestException('확언 값이 없습니다.');
+    if (affirmation.trim() === '') {
+      throw new BadRequestException('오늘의 다짐을 입력해주세요.');
     }
   }
 

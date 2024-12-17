@@ -89,7 +89,7 @@ export class AuthService {
   async generateAccessToken(userDto: UserDto): Promise<string> {
     const userFind = await this.userService.findUser(userDto.email);
     if (!userFind || userFind.password != userDto.password) {
-      throw new UnauthorizedException('엑세스 토큰 생성 실패하였습니다.');
+      throw new UnauthorizedException('액세스 토큰 생성 실패하였습니다.');
     }
     const payload = {
       sub: userFind._id,

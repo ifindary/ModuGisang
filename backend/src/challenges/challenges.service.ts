@@ -1,8 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  HttpException,
-  HttpStatus,
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
@@ -14,7 +12,6 @@ import {
   IsNull,
   MoreThanOrEqual,
   Repository,
-  createQueryBuilder,
 } from 'typeorm';
 import { CreateChallengeDto } from './dto/createChallenge.dto';
 import { InvitationsService } from 'src/invitations/invitations.service';
@@ -54,9 +51,7 @@ export class ChallengesService {
     const user = await this.userService.findOneByID(challenge.hostId);
 
     if (!user) {
-      throw new NotFoundException(
-        `해당 ID(${challenge.hostId})를 가지는 유저는 존재하지 않습니다.`,
-      );
+      throw new NotFoundException(`해당 유저는 존재하지 않습니다.`);
     }
 
     // challengeId가 -1이 아닌 경우 새로운 챌린지 생성 불가
@@ -93,14 +88,10 @@ export class ChallengesService {
     });
 
     if (!editChall) {
-      throw new NotFoundException(
-        `챌린지 ID ${challenge.challengeId}를 찾을 수 없습니다.`,
-      );
+      throw new NotFoundException(`해당 챌린지를 찾을 수 없습니다.`);
     }
     if (editChall.hostId !== challenge.hostId) {
-      throw new BadRequestException(
-        `${challenge.hostId}는 챌린지의 호스트가 아닙니다.`,
-      );
+      throw new BadRequestException(`해당 유저는 챌린지의 호스트가 아닙니다.`);
     }
 
     const endDate = new Date(challenge.startDate);
@@ -127,18 +118,14 @@ export class ChallengesService {
       where: { _id: challengeId },
     });
     if (!challenge) {
-      throw new NotFoundException(
-        `챌린지 ID ${challengeId}를 찾을 수 없습니다.`,
-      );
+      throw new NotFoundException(`해당 챌린지를 찾을 수 없습니다.`);
     }
     if (challenge.hostId !== hostId) {
-      throw new BadRequestException(
-        `${challenge.hostId}는 챌린지의 호스트가 아닙니다.`,
-      );
+      throw new BadRequestException(`해당 유저는 챌린지의 호스트가 아닙니다.`);
     }
     if (challenge.startDate < new Date()) {
       throw new BadRequestException(
-        `챌린지 ID ${challengeId}가 이미 시작되었으므로 삭제할 수 없습니다.`,
+        `해당 챌린지가 이미 시작되었으므로 삭제할 수 없습니다.`,
       );
     }
     return await this.challengeRepository.delete(challengeId);
@@ -152,24 +139,18 @@ export class ChallengesService {
       });
     }
     if (!challenge) {
-      throw new NotFoundException(
-        `챌린지 ID ${challengeId}를 찾을 수 없습니다.`,
-      );
+      throw new NotFoundException(`해당 챌린지를 찾을 수 없습니다.`);
     }
     const currentDate = new Date();
     if (!this.validateChallengeDate(currentDate, challenge)) {
-      throw new BadRequestException(
-        `챌린지 ID ${challengeId}가 진행 중이 아닙니다.`,
-      );
+      throw new BadRequestException(`해당 챌린지가 진행 중이 아닙니다.`);
     }
 
     const users = await this.userRepository.findBy({
       challengeId: challengeId,
     });
     if (users.length === 0) {
-      throw new NotFoundException(
-        `챌린지 ID ${challengeId}에 대한 사용자를 찾을 수 없습니다.`,
-      );
+      throw new NotFoundException(`해당 사용자를 찾을 수 없습니다.`);
     }
 
     if (users.length === 1) {
@@ -180,7 +161,7 @@ export class ChallengesService {
       const newHost = users.find((user) => user._id !== challenge.hostId);
       if (!newHost) {
         throw new BadRequestException(
-          `챌린지 ID ${challengeId}에 대한 적합한 새 호스트를 찾을 수 없습니다.`,
+          `해당 챌린지에 대한 적합한 새 호스트를 찾을 수 없습니다.`,
         );
       }
       challenge.hostId = newHost._id;
@@ -389,13 +370,6 @@ export class ChallengesService {
       relations: ['user'],
     });
 
-    if (!nowAttendance) {
-      throw new HttpException(
-        '참여가 존재하지 않습니다.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
     const challengeId = nowAttendance.challengeId;
 
     const attendances = await this.attendanceRepository
@@ -434,9 +408,7 @@ export class ChallengesService {
       where: { _id: setChallengeWakeTimeDto.challengeId },
     });
     if (!challengeValue) {
-      throw new NotFoundException(
-        `${setChallengeWakeTimeDto.challengeId}의 챌린지를 찾을 수 없습니다.`,
-      );
+      throw new NotFoundException(`해당 챌린지를 찾을 수 없습니다.`);
     }
     challengeValue.wakeTime = new Date(
       `1970-01-01T${setChallengeWakeTimeDto.wakeTime}`,
@@ -456,9 +428,7 @@ export class ChallengesService {
       where: { _id: challengeId },
     });
     if (!challenge) {
-      throw new NotFoundException(
-        `${challengeId}의 챌린지를 찾을 수 없습니다.`,
-      );
+      throw new NotFoundException(`해당 챌린지를 찾을 수 없습니다.`);
     }
     if (!this.checkChallengeExpiration(challenge)) {
       // -> error를 발생시켜야 하나?
@@ -531,7 +501,7 @@ export class ChallengesService {
 
     if (startDateTime <= currentDate) {
       throw new BadRequestException(
-        '시작 날짜와 기상 시간이 유효하지 않습니다.',
+        '현재 시간 이후로 챌린지 시작 날짜를 설정해주세요.',
       );
     }
   }
