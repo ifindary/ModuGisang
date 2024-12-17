@@ -472,19 +472,14 @@ export class UserService {
     });
     return updatedPassword.affected === 1;
   }
-  // 30일 이전에 삭제된 사용자 조회
-  async findUsersDeletedBefore(thresholdDate: Date): Promise<Users[]> {
-    return await this.userRepository.find({
-      where: {
-        deletedAt: LessThan(thresholdDate),
-      },
-    });
-  }
 
-  // 사용자들을 영구 삭제
-  async deleteUsersPermanently(users: Users[]): Promise<void> {
-    const userIds = users.map((user) => user._id); // 삭제 대상 사용자 ID 목록
-    await this.userRepository.delete(userIds); // 영구 삭제
+  // 30일 이전에 삭제된 사용자 조회 후 영구 삭제
+  async deleteUsers(thirtyDaysAgo: Date) {
+    return await this.userRepository
+      .createQueryBuilder()
+      .delete()
+      .where('deletedAt < :thirtyDaysAgo', { thirtyDaysAgo })
+      .execute();
   }
 
   checkPWformat(pw: string): any {
