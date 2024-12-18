@@ -5,7 +5,13 @@ import {
   OpenViduContextProvider,
   SafeAreaContextProvider,
 } from './contexts';
-import { Signin, Signup, ForgotPassword, ProtectedRoute } from './pages/Auth';
+import {
+  Signin,
+  Signup,
+  ForgotPassword,
+  ProtectedRoute,
+  HostRoute,
+} from './pages/Auth';
 import { PageNotFound, OfflinePage } from './components';
 import {
   Main,
@@ -52,7 +58,9 @@ function Router() {
               <Route path="/myStreak" element={<MyStreak />} />
               <Route path="/joinChallenge" element={<JoinChallenge />} />
               <Route path="/createChallenge" element={<CreateChallenge />} />
-              <Route path="/editChallenge" element={<EditChallenge />} />
+              <Route element={<HostRoute />}>
+                <Route path="/editChallenge" element={<EditChallenge />} />
+              </Route>
               <Route
                 path="/startMorning"
                 element={

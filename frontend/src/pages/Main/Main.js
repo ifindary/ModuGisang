@@ -8,6 +8,7 @@ import {
   StreakContent,
   InvitationsContent,
   ChallengeContent,
+  AddMatesContent,
 } from './cardComponents';
 import { CARD_TYPES, CARD_STYLES } from './DATA';
 
@@ -20,8 +21,8 @@ const Main = () => {
   const navigate = useNavigate();
 
   const { accessToken, userId } = useContext(AccountContext);
-  const { challengeId, getMyData } = useContext(UserContext);
-  const { challengeData } = useContext(ChallengeContext);
+  const { getMyData, challengeId } = useContext(UserContext);
+  const { challengeData, isChallengeStarted } = useContext(ChallengeContext);
   const { requestMicrophonePermission, requestCameraPermission } =
     usePermissionCheck();
 
@@ -49,7 +50,7 @@ const Main = () => {
   }, [challengeData]);
 
   useEffect(() => {
-    if (Capacitor.isNativePlatform) {
+    if (Capacitor.isNativePlatform()) {
       requestMicrophonePermission();
       requestCameraPermission();
     }
@@ -75,6 +76,14 @@ const Main = () => {
                 boxStyle={CARD_STYLES[type]}
               />
             ),
+          )}
+          {!isChallengeStarted && hasChallenge && (
+            <OutlineBox
+              key={'inviteMates'}
+              content={<AddMatesContent />}
+              onClickHandler={null}
+              boxStyle={CARD_STYLES['inviteMates']}
+            />
           )}
         </CardsWrapper>
         <BottomFixContent />
