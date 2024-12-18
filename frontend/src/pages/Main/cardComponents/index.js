@@ -3,6 +3,7 @@ import InvitationsContent from './InvitationsContent';
 import CreateContent from './CreateContent';
 import ChallengeContent from './ChallengeContent';
 import EnterContent from './EnterContent';
+import AddMatesContent from './AddMatesContent';
 
 export {
   StreakContent,
@@ -10,4 +11,5 @@ export {
   CreateContent,
   ChallengeContent,
   EnterContent,
+  AddMatesContent,
 };

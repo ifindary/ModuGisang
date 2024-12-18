@@ -25,7 +25,8 @@ const Settings = () => {
 
   const { getMyData } = useContext(UserContext);
   const user = useContext(UserContext);
-  const { challengeData, handleGiveUpChallenge } = useContext(ChallengeContext);
+  const { challengeData, handleGiveUpBeforeChallenge } =
+    useContext(ChallengeContext);
   const { accessToken, userId } = useContext(AccountContext);
 
   const [isLogoutLoading, setIsLogoutLoading] = useState(false);
@@ -33,7 +34,9 @@ const Settings = () => {
   const [isAbleInput, setIsAbleInput] = useState(false);
   const [isExceeded30, setIsExceeded30] = useState(false);
 
-  const [isHost, setIsHost] = useState(false);
+  const hasChallenge = Number(user.challengeId) !== -1;
+  const isHost = userId === challengeData.hostId;
+
   //////////////////////////////////////////
   // const [wakeTime, setWakeTime] = useState('');
   // const [challengeId, setChallengeId] = useState('');
@@ -81,7 +84,7 @@ const Settings = () => {
 
   const ON_CLICK_HANDLERS = [
     () => {
-      handleGiveUpChallenge();
+      handleGiveUpBeforeChallenge();
     },
     () => {
       console.log('host');
@@ -137,12 +140,6 @@ const Settings = () => {
       setAffirmation(user.myData.affirmation);
     }
   }, [user.myData.affirmation]);
-
-  useEffect(() => {
-    if (challengeData && challengeData.hostId) {
-      setIsHost(challengeData.hostId === userId);
-    }
-  }, [challengeData, userId]);
 
   return (
     <>
@@ -208,10 +205,11 @@ const Settings = () => {
         </> */}
 
         {/* <LongBtn btnName="연습 게임 진행하기" onClickHandler={handlePractice} /> */}
-        <ChallengeEditWrapper onClick={ON_CLICK_HANDLERS[+isHost]}>
-          {isHost ? <Text>챌린지 수정</Text> : <Text>챌린지 포기</Text>}
-        </ChallengeEditWrapper>
-
+        {hasChallenge && (
+          <ChallengeEditWrapper onClick={ON_CLICK_HANDLERS[+isHost]}>
+            {isHost ? <Text>챌린지 수정</Text> : <Text>챌린지 포기</Text>}
+          </ChallengeEditWrapper>
+        )}
         <ChangePasswordWrapper onClick={() => navigate('/changePassword')}>
           <Text>비밀번호 변경</Text>
           <Icon

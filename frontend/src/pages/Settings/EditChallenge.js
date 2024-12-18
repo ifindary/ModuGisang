@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   NavBar,
@@ -24,7 +24,6 @@ const EditChallenge = () => {
   const { accessToken, userId } = useContext(AccountContext);
   const { challengeId } = useContext(UserContext);
   const { handleEditChallenge } = useContext(ChallengeContext);
-  const [isEditChallengeLoading, setIsEditChallengeLoading] = useState(false);
 
   const hours = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
   const minutes = Array.from({ length: 60 }, (_, i) =>
@@ -138,10 +137,15 @@ const EditChallenge = () => {
         wakeTime: isoWakeTime,
       },
     });
-    setIsEditChallengeLoading(false);
-    if (response.data) {
-      alert('챌린지가 생성되었습니다.');
+
+    const { isLoading: isEditChallengeLoading, error: editChallengeError } =
+      response;
+    if (!isEditChallengeLoading && !editChallengeError) {
+      alert('챌린지가 수정되었습니다.');
       navigate('/main');
+    } else {
+      alert(editChallengeError);
+      window.location.reload();
     }
   };
 
@@ -154,10 +158,13 @@ const EditChallenge = () => {
         userId,
       }),
     );
-    if (response.status === 200) {
+    const { isLoading: isDeleteChallengeLoading, error: deleteChallengeError } =
+      response;
+    if (!isDeleteChallengeLoading && !deleteChallengeError) {
       alert('챌린지가 삭제되었습니다.');
       navigate('/main');
     } else {
+      alert(deleteChallengeError);
       console.log(response);
     }
   };
@@ -214,8 +221,6 @@ const EditChallenge = () => {
         />
 
         <Title>기상 시간</Title>
-
-        {/* 다이얼 시간 선택 */}
         <TimeBox>
           <TimePicker
             isList={true}
