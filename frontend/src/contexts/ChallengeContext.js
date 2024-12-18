@@ -25,8 +25,8 @@ const ChallengeContextProvider = ({ children }) => {
     //   { userId: 5, userName: '똑똑이연선애' },
     // ],
   });
-
   const [isAttended, setIsAttended] = useState(false);
+  const [isChallengeStarted, setIsChallengeStarted] = useState(false);
 
   const getChallengeData = async () => {
     const response = await fetchData(() =>
@@ -96,6 +96,31 @@ const ChallengeContextProvider = ({ children }) => {
   const handleGiveUpChallenge = async () => {
     const response = await fetchData(() =>
       challengeServices.giveupChallenge({
+        accessToken,
+        challengeId,
+        userId,
+      }),
+    );
+
+    const {
+      isLoading: isGiveUpChallengeLoading,
+      data: giveUpChallengeData,
+      error: giveUpChallengeError,
+    } = response;
+
+    if (!isGiveUpChallengeLoading && giveUpChallengeData) {
+      console.log(response);
+    } else if (!isGiveUpChallengeLoading && giveUpChallengeError) {
+      console.error(giveUpChallengeError);
+    } else {
+      console.log(response);
+    }
+    return response;
+  };
+
+  const handleGiveUpBeforeChallenge = async () => {
+    const response = await fetchData(() =>
+      challengeServices.giveupBeforChallenge({
         accessToken,
         challengeId,
         userId,
@@ -219,14 +244,37 @@ const ChallengeContextProvider = ({ children }) => {
     }
   }, [challengeData]);
 
+  useEffect(() => {
+    if (challengeData?.startDate) {
+      const startDate = new Date(
+        new Date(challengeData.startDate).getFullYear(),
+        new Date(challengeData.startDate).getMonth(),
+        new Date(challengeData.startDate).getDate(),
+      );
+
+      const today = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth(),
+        new Date().getDate(),
+      );
+
+      setIsChallengeStarted(today >= startDate);
+    }
+  }, [challengeData]);
+
   return (
     <ChallengeContext.Provider
       value={{
         challengeData,
         isAttended,
+        isChallengeStarted,
+
         setChallengeData,
+
+        setIsChallengeStarted,
         getChallengeData,
         handleCreateChallenge,
+        handleGiveUpBeforeChallenge,
         handleGiveUpChallenge,
         handleEditChallenge,
         handleAcceptInvitation,

@@ -117,6 +117,22 @@ const giveupChallenge = async ({ accessToken, challengeId, userId }) => {
   return await API.post(url, {}, config);
 };
 
+const giveupBeforChallenge = async ({ accessToken, challengeId, userId }) => {
+  const url = `/challenge/delete/${challengeId}/${userId}`;
+  const config = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  };
+  return await API.post(url, {}, config);
+};
+
+const addMatesToChallenge = async ({ accessToken, challengeId, mates }) => {
+  const url = `/challenge/add-mates/${challengeId}`;
+  const config = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  };
+  return await API.post(url, mates, config);
+};
+
 const getCalendarInfo = async ({ accessToken, userId, month }) => {
   const url = `/challenge/calendar/${userId}/${month}`;
   const config = {
@@ -155,4 +171,6 @@ export const challengeServices = {
   editChallenge,
   deleteChallenge,
   giveupChallenge,
+  giveupBeforChallenge,
+  addMatesToChallenge,
 };
