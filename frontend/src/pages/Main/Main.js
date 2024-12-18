@@ -27,6 +27,7 @@ const Main = () => {
     usePermissionCheck();
 
   const hasChallenge = Number(challengeId) !== -1;
+  const isHost = userId === challengeData.hostId;
 
   const CARD_CONTENTS = {
     streak: <StreakContent />,
@@ -56,6 +57,8 @@ const Main = () => {
     }
   }, []);
 
+  console.log(isHost);
+
   if (!userId || !challengeData)
     return (
       <S.LoadingWrapper>
@@ -77,7 +80,7 @@ const Main = () => {
               />
             ),
           )}
-          {!isChallengeStarted && hasChallenge && (
+          {!isChallengeStarted && hasChallenge && isHost && (
             <OutlineBox
               key={'inviteMates'}
               content={<AddMatesContent />}
