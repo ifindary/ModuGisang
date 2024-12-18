@@ -36,11 +36,7 @@ export class ChallengesController {
   async getChallengeInfo(
     @Query('challengeId') challengeId: number,
   ): Promise<ChallengeResponseDto> {
-    const challenge = await this.challengeService.getChallengeInfo(challengeId);
-    if (!challenge) {
-      throw new NotFoundException(`Challenge with ID ${challengeId} not found`);
-    }
-    return challenge;
+    return await this.challengeService.getChallengeInfo(challengeId);
   }
 
   @Post('create')
@@ -103,27 +99,45 @@ export class ChallengesController {
     return challenge;
   }
 
-  @Post('delete/:challengeId/:hostId') // 챌린지 생성하고 시작하지 않고 삭제하는 경우
+  @Post('delete/:challengeId/:userId') // 챌린지 생성하고 시작하지 않고 삭제하는 경우
   async deleteChallenge(
     @Param('challengeId') challengeId: number,
-    @Param('hostId') hostId: number,
+    @Param('userId') userId: number,
   ) {
-    console.log(challengeId);
+    console.log(`Deleting challenge ID: ${challengeId} for user ID: ${userId}`);
+
     const deleteChallengeResult = await this.challengeService.deleteChallenge(
       challengeId,
-      hostId,
+      userId,
     );
-    if (deleteChallengeResult.affected === 0) {
+    // 일반 유저의 리셋만 수행한 경우
+    if (
+      'resetOnly' in deleteChallengeResult &&
+      deleteChallengeResult.resetOnly
+    ) {
       return {
-        message: '챌린지 삭제 실패',
-        status: 500,
+        message: '챌린지 탈퇴 성공',
+        status: 200,
       };
-    } else {
+    }
+
+    // 호스트가 챌린지를 삭제한 경우
+    if (
+      'affected' in deleteChallengeResult &&
+      deleteChallengeResult.affected &&
+      deleteChallengeResult.affected > 0
+    ) {
       return {
         message: '챌린지 삭제 성공',
         status: 200,
       };
     }
+
+    // 삭제 실패한 경우
+    return {
+      message: '챌린지 삭제 실패',
+      status: 500,
+    };
   }
 
   // 로컬에 저장한 챌린지 값으로 현재 날짜랑 챌린지 날짜 비교해서 넘은 경우만 호출
