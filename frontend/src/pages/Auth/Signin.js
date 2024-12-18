@@ -66,7 +66,7 @@ const Signin = () => {
   };
 
   const handleLoginClick = async e => {
-    if (isScrolling) return;
+    if (isScrolling) return; // 자동 스크롤링 중 실수로 인한 버튼 눌림 방지
     await handleSubmitLogIn({
       e,
       loginEmail,

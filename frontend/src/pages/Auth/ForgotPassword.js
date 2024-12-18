@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { InputLine, LongBtn, NavBar } from '../../components';
+import { ERROR_MESSAGES } from '../../constants/Messages';
 import useAuth from '../../hooks/useAuth';
 import useValidation from '../../hooks/useValidation';
 import * as S from '../../styles/common';
@@ -15,22 +16,32 @@ const ForgotPassword = () => {
 
   const { handleSendTmpPassword } = useAuth();
 
+  const emailInputRef = useRef(null);
+
   const handleEmailChange = e => {
     const newEmail = e.target.value;
     setEmail(newEmail);
 
-    setEmailError('');
+    if (newEmail && !isValidEmail(newEmail)) {
+      setEmailError(ERROR_MESSAGES.INVALID_EMAIL);
+    } else {
+      setEmailError('');
+    }
     setSuccessMessage('');
     setIsButtonDisabled(false);
   };
 
+  const handleKeyDownEmail = async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (emailInputRef.current) {
+        emailInputRef.current.blur();
+      }
+    }
+  };
+
   const handleForgotPassword = async e => {
     e.preventDefault();
-
-    if (!isValidEmail(email)) {
-      setEmailError('올바른 이메일 주소를 입력해 주세요.');
-      return;
-    }
 
     setEmailError('');
     setSuccessMessage('');
@@ -58,10 +69,11 @@ const ForgotPassword = () => {
         <FormSection>
           <Title>비밀번호를 찾으려는 아이디</Title>
           <InputLine
+            ref={emailInputRef}
             type="email"
             value={email}
             onChange={handleEmailChange}
-            placeholder="이메일을 입력하세요"
+            onKeyDown={handleKeyDownEmail}
           />
         </FormSection>
         <LongBtn

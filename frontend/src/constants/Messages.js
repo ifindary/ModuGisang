@@ -12,3 +12,10 @@ export const ALERT_MESSAGES = {
   SIGNUP_SUCCESS: '회원가입이 완료되었습니다.',
   LOGIN_REQUIRED: '로그인이 필요합니다.',
 };
+
+export const ERROR_MESSAGES = {
+  INVALID_EMAIL: '올바른 이메일 주소를 입력해주세요.',
+  INVALID_NAME: '이름은 5글자를 넘길 수 없습니다.',
+  INVALID_PASSWORD:
+    '비밀번호는 8자~16자로 숫자와 영문자, 특수문자를 하나씩 포함해야 합니다.',
+};

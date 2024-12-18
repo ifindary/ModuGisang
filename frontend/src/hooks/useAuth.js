@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authServices, userServices } from '../apis';
 import { AccountContext } from '../contexts/AccountContexts';
-import { ALERT_MESSAGES } from '../constants/AlertMessages';
+import { ALERT_MESSAGES } from '../constants/Messages';
 import useFetch from '../hooks/useFetch';
 import useHandleError from '../hooks/useHandleError';
 
