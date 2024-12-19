@@ -35,7 +35,14 @@ let prevforehead = null;
 let isMovingScore = 0;
 let isMovingStatus = true; // 움직이는 중인지 여부
 let myPostitStatus = [false, false, false]; // 측정 결과
-const timeoutDuration = 16000; // 제한 시간
+
+let topEyebrowIndex = 107;
+let rightCheekIndex = 376;
+let leftCheekIndex = 147;
+let rightMouseIndex = 291; // 볼 움직임 체크가 어려워 입꼬리를 대신 사용
+let leftMouseIndex = 61;
+
+const timeoutDuration = 160000; // 제한 시간
 let isTimeOut = false; // 타임 아웃 여부
 let isGameStart = false;
 
@@ -142,9 +149,9 @@ const Mission2 = () => {
         }
       }
 
-      const topEyebrow = faceLandmarks[107]; // 눈썹
-      const leftCheek = faceLandmarks[61]; // 왼쪽 볼
-      const rightCheek = faceLandmarks[291]; // 오른쪽 볼
+      const topEyebrow = faceLandmarks[topEyebrowIndex];
+      const leftCheek = faceLandmarks[leftMouseIndex];
+      const rightCheek = faceLandmarks[rightMouseIndex];
 
       if (!isMovingStatus && !isTimeOut) {
         // 눈썹 움직임 확인
@@ -368,7 +375,11 @@ const Mission2 = () => {
         if (!status) {
           const newPostitPosition = calculatePostitPosition(
             faceLandmarks,
-            index === 0 ? 107 : index === 1 ? 147 : 376, // 각 포스트잇의 위치 계산(0: 이마, 1: 왼쪽 볼, 2: 오른쪽 볼)
+            index === 0
+              ? topEyebrowIndex
+              : index === 1
+                ? leftCheekIndex
+                : rightCheekIndex, // 각 포스트잇의 위치 계산(0: 이마, 1: 왼쪽 볼, 2: 오른쪽 볼)
           );
           setPostitPositions(prevPositions => {
             const updatedPositions = [...prevPositions];
@@ -449,7 +460,6 @@ const Mission2 = () => {
     };
   }, [isMissionStarting, holisticModel]);
 
-  // 포스트잇의 위치와 크기를 계산하는 함수
   const calculatePostitPosition = (landmarks, index) => {
     const videoElement = myVideoRef.current;
     if (!videoElement) return { top: 0, left: 0, size: 0 };

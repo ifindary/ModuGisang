@@ -17,6 +17,7 @@ import StyledLink from './StyledLink';
 import WarmUpModel from './WarmUpModel';
 import PageNotFound from './PageNotFound';
 import OfflinePage from './OfflinePage';
+import ErrorPage from './ErrorPage';
 
 export {
   Icon,
@@ -28,6 +29,7 @@ export {
   NavBar,
   PageNotFound,
   OfflinePage,
+  ErrorPage,
   LoadingWithText,
   Dropdown,
   WarmUpModel,

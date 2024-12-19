@@ -6,7 +6,7 @@ import {
   SafeAreaContextProvider,
 } from './contexts';
 import { Signin, Signup, ForgotPassword, ProtectedRoute } from './pages/Auth';
-import { PageNotFound, OfflinePage } from './components';
+import { PageNotFound, OfflinePage, ErrorPage } from './components';
 import {
   Main,
   InGame,
@@ -65,6 +65,7 @@ function Router() {
               <Route path="/changePassword" element={<ChangePassword />} />
             </Route>
             <Route path="/offline" element={<OfflinePage />} />
+            <Route path="/error" element={<ErrorPage />} />
             <Route path="*" element={<PageNotFound />} />
           </Routes>
         </SafeAreaLayout>
