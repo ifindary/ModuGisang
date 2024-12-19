@@ -20,8 +20,6 @@ export class InGameService {
       timestamp,
       EXPIRE_TIME,
     );
-    console.log('@@recordEntryTime/userId', userId);
-    console.log('result:', result);
     if (result === 'OK') {
       return true;
     }
@@ -30,18 +28,9 @@ export class InGameService {
 
   async submitScore(scoreDto: ScoreDto): Promise<boolean> {
     const { userId, userName, score, challengeId } = scoreDto;
-    console.log(
-      '@@submitScore/userId,userName,score,challengeId',
-      userId,
-      userName,
-      score,
-      challengeId,
-    );
     try {
       const entryTime = await this.redisService.get(`entryTime:${userId}`);
-      console.log('@@@@entryTime:', entryTime);
       if (!entryTime) {
-        console.error(`Entry time:${userId} not found`);
         return false;
       }
       const currentTime = Date.now();
@@ -113,7 +102,6 @@ export class InGameService {
       return await operation();
     } catch (error) {
       if (retries > 0) {
-        console.log(`Retrying operation, attempts left: ${retries}`);
         await new Promise((resolve) => setTimeout(resolve, 1000)); // 1초 대기
         return this.retryOperation(operation, retries - 1);
       }

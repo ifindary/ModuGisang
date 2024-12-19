@@ -19,12 +19,10 @@ export class OpenviduService {
   async openviduTotalService(body: any) {
     try {
       const session = await this.findSession(body.userData.challengeId);
-      console.log(session);
       return session
         ? await this.createToken(session.sessionId, body)
         : await this.handleNoSessionFound(body);
     } catch (error) {
-      console.log('Check existing session: ', error);
       return await this.handleNoSessionFound(body);
     }
   }
@@ -33,7 +31,10 @@ export class OpenviduService {
     const session = await this.findSession(sessionId);
 
     if (!session) {
-      throw new HttpException('Session not found', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        '해당 세션을 찾을 수 없습니다.',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     // 동일한 유저의 기존 연결을 찾는 로직
@@ -53,13 +54,11 @@ export class OpenviduService {
 
     try {
       const response = await session.generateToken(tokenOptions);
-      console.log('Generated Token: ', response);
       await this.userService.saveOpenviduToken(body.userData.userId, response);
       return response;
     } catch (error) {
-      console.error('Error creating connection: ', error);
       throw new HttpException(
-        'Error creating connection: ' + error.message,
+        '서버 에러로 인해 해당 방에 참여할 수 없습니다.: ' + error.message,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -74,15 +73,13 @@ export class OpenviduService {
 
   async handleNoSessionFound(body: any) {
     try {
-      console.log('No existing session found, creating new session');
       const session = await this.openvidu.createSession({
         customSessionId: body.userData.challengeId,
       });
       return this.createToken(session.sessionId, body);
     } catch (error) {
-      console.error('Error creating new session : ', error);
       throw new HttpException(
-        'Failed to create session ',
+        '세션 생성에 실패하였습니다.',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

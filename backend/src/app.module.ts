@@ -18,6 +18,8 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './common/Interceptors/logging.interceptor';
 import { HealthCheckModule } from './health-check/health-check.module';
 import { HealthCheckAuthMiddleware } from './health-check/health-check.middleware';
+import { UsersScheduler } from './users/users-scheduler';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -30,6 +32,7 @@ import { HealthCheckAuthMiddleware } from './health-check/health-check.middlewar
           : '.env.production',
       //ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
+    ScheduleModule.forRoot(),
     EmailModule,
     RedisAppModule,
     DatabaseModule,
@@ -46,6 +49,7 @@ import { HealthCheckAuthMiddleware } from './health-check/health-check.middlewar
   ],
   controllers: [AppController],
   providers: [
+    UsersScheduler,
     AppService,
     {
       provide: APP_INTERCEPTOR,
