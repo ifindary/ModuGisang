@@ -7,13 +7,12 @@ import {
 } from '@nestjs/common';
 import { Users } from './entities/users.entity';
 import * as argon2 from 'argon2';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 import { UserDto } from '../auth/dto/user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Streak } from './entities/streak.entity';
 import RedisCacheService from '../redis-cache/redis-cache.service';
-import { UserInformationDto } from './dto/user-info.dto';
 import { Challenges } from 'src/challenges/challenges.entity';
 import { Invitations } from 'src/invitations/invitations.entity';
 // import { refreshJwtConstants } from 'src/auth/constants';
@@ -472,6 +471,15 @@ export class UserService {
       password: hashedPassword,
     });
     return updatedPassword.affected === 1;
+  }
+
+  // 30일 이전에 삭제된 사용자 조회 후 영구 삭제
+  async deleteUsers(thirtyDaysAgo: Date) {
+    return await this.userRepository
+      .createQueryBuilder()
+      .delete()
+      .where('deletedAt < :thirtyDaysAgo', { thirtyDaysAgo })
+      .execute();
   }
 
   checkPWformat(pw: string): any {
