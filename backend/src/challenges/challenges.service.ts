@@ -13,6 +13,7 @@ import {
   IsNull,
   MoreThanOrEqual,
   Repository,
+  UpdateResult,
 } from 'typeorm';
 import { CreateChallengeDto } from './dto/createChallenge.dto';
 import { InvitationsService } from 'src/invitations/invitations.service';
@@ -81,36 +82,37 @@ export class ChallengesService {
     return await this.challengeRepository.save(newChallenge);
   }
 
-  async editChallenge(challenge: EditChallengeDto): Promise<Challenges> {
+  async editChallenge(challenge: EditChallengeDto): Promise<UpdateResult> {
     this.validateStartAndWakeTime(challenge.startDate, challenge.wakeTime);
     this.validateDuration(challenge.duration);
-
-    let editChall = await this.redisCheckChallenge(challenge.challengeId);
-    if (!editChall) {
-      editChall = await this.challengeRepository.findOne({
-        where: { _id: challenge.challengeId },
-      });
-    }
-    if (!editChall) {
-      throw new NotFoundException(`해당 챌린지를 찾을 수 없습니다.`);
-    }
-    if (editChall.hostId !== challenge.hostId) {
-      throw new BadRequestException(`해당 유저는 챌린지의 호스트가 아닙니다.`);
-    }
 
     const endDate = new Date(challenge.startDate);
     endDate.setDate(endDate.getDate() + challenge.duration - 1); // durationDays가 10일이라면 10일째 되는 날로 설정
 
-    editChall.startDate = challenge.startDate;
-    editChall.wakeTime = challenge.wakeTime;
-    editChall.duration = challenge.duration;
-    editChall.endDate = endDate;
-    editChall.completed = false;
-    editChall.deleted = false;
+    const updateChallengeData = {
+      startDate: challenge.startDate,
+      wakeTime: challenge.wakeTime,
+      duration: challenge.duration,
+      endDate: endDate,
+    };
 
     // 수정 후 캐시 삭제
-    this.redisCacheService.del(`challenge_${editChall._id}`);
-    return await this.challengeRepository.save(editChall);
+    const result = await this.challengeRepository.update(
+      {
+        _id: challenge.challengeId,
+        hostId: challenge.hostId,
+      },
+      updateChallengeData,
+    );
+    if (result.affected === 0) {
+      throw new NotFoundException(
+        `해당 챌린지를 찾을 수 없거나 업데이트 권한이 없습니다.`,
+      );
+    }
+    //캐시 삭제
+    this.redisCacheService.del(`challenge_${challenge.challengeId}`);
+
+    return result;
   }
 
   // 챌린지 삭제 시 30일 정도 생성 못한다면 다시 복구 기능이 필요할 수 있음 -> hard가 아닌 soft delete??
