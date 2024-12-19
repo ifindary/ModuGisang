@@ -188,7 +188,7 @@ export class UserService {
       return true;
     } else {
       throw new InternalServerErrorException(
-        '확언 업데이트 중 문제가 발생했습니다.',
+        '오늘의 다짐 수정 중 문제가 발생했습니다.',
       );
     }
   }

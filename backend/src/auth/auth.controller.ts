@@ -120,10 +120,10 @@ export class AuthController {
     if (req.user) {
       return {
         status: 'sucess',
-        message: 'Access Token 인증 성공',
+        message: '액세스 토큰 인증 성공',
       };
     } else {
-      throw new UnauthorizedException('Access Token 인증 실패');
+      throw new UnauthorizedException('액세스 토큰 인증 실패');
     }
   }
 
@@ -138,10 +138,10 @@ export class AuthController {
           userId: result.userId,
         };
       } else {
-        throw new UnauthorizedException('Access Token 생성 실패하였습니다.');
+        throw new UnauthorizedException('액세스 토큰 생성 실패하였습니다.');
       }
     } catch (err) {
-      throw new UnauthorizedException('refresh-token이 유효하지 않습니다.');
+      throw new UnauthorizedException('리프레쉬 토큰이 유효하지 않습니다.');
     }
   }
 
