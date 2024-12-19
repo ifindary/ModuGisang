@@ -15,13 +15,20 @@ export class LoggingInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest();
     const { method, url, headers, body } = request;
 
+    const clientIp = headers['x-forwarded-for'] || request.ip;
+    const userAgent = headers['user-agent'];
+
     // 헬스체크 요청 무시
-    if (headers['user-agent']?.includes('ELB-HealthChecker')) {
+    if (userAgent?.includes('ELB-HealthChecker')) {
       return next.handle();
     }
 
     // 요청 정보 로깅
-    winstonLogger.log(`Request Method: ${method} URL: ${url}`, {
+    winstonLogger.log('Request Info', {
+      method,
+      url,
+      clientIp,
+      userAgent,
       headers: filterSensitiveInfo(headers),
       body: filterSensitiveInfo(body),
     });
