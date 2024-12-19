@@ -133,7 +133,8 @@ export class ChallengesService {
         '해당 챌린지는 이미 시작되어 삭제할 수 없습니다.',
       );
     }
-
+    const cacheKey = `challenge_${challenge._id}`;
+    await this.redisCacheService.del(cacheKey);
     // 3. Host 여부에 따라 분기 처리
     if (challenge.hostId === userId) {
       // Host 인 경우 Challenge 삭제 및 관련 사용자 초기화
