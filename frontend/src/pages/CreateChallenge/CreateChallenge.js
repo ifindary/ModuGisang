@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   NavBar,
@@ -29,6 +29,11 @@ const CreateChallenge = () => {
   const { handleCreateChallenge } = useContext(ChallengeContext);
   const [isCreateChallengeLoading, setIsCreateChallengeLoading] =
     useState(false);
+
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+
+  const emailInputRef = useRef(null);
 
   const hours = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
   const minutes = Array.from({ length: 60 }, (_, i) =>
@@ -166,6 +171,28 @@ const CreateChallenge = () => {
     return userId && duration && startDate && wakeTime;
   };
 
+  const handleKeyDownEmail = async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (emailInputRef.current) {
+        emailInputRef.current.blur();
+      }
+    }
+  };
+
+  const handleFocus = (inputRef, focusState) => {
+    setIsInputFocused(focusState);
+    if (inputRef.current && focusState) {
+      setIsScrolling(true);
+      inputRef.current.focus();
+      inputRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+      setTimeout(() => setIsScrolling(false), 1000);
+    }
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
 
@@ -276,13 +303,17 @@ const CreateChallenge = () => {
 
         <Title>미라클 메이트 초대</Title>
         <InputLine
+          ref={emailInputRef}
           hasIcon={true}
           type="email"
           icon="search"
           iconStyle={searchIcon}
           value={emailInput}
           onChange={handleEmailChange}
+          onKeyDown={handleKeyDownEmail}
           onClickHandler={checkEmail}
+          onFocus={() => handleFocus(emailInputRef, true)}
+          onBlur={() => handleFocus(emailInputRef, false)}
         />
 
         <InvitedBox>
@@ -303,6 +334,7 @@ const CreateChallenge = () => {
           onClickHandler={handleSubmit}
           isDisabled={!canSubmit()}
         />
+        <Spacer isVisible={isInputFocused} />
       </S.PageWrapper>
     </>
   );
@@ -414,3 +446,8 @@ const searchIcon = {
   color: 'purple',
   hoverColor: 'white',
 };
+
+const Spacer = styled.div`
+  height: ${props => (props.isVisible ? '300px' : '0px')};
+  transition: height 1s ease-in-out;
+`;
