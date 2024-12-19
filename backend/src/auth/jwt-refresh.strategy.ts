@@ -36,10 +36,8 @@ export class JwtRefreshStrategy extends PassportStrategy(
   }
 
   async validate(payload: any): Promise<any> {
-    console.log('@@@process.env.IS_Production', process.env.IS_Production);
     if (payload === 'no-token') {
-      console.log('Handling invalid or null token.');
-      throw new UnauthorizedException('Invalid or no token provided.');
+      throw new UnauthorizedException('유효하지 않는 토큰입니다.');
     }
     const user = await this.userService.getUserRefreshToken(payload._id);
     return user;

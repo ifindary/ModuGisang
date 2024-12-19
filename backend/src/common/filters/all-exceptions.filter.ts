@@ -12,7 +12,7 @@ import { filterSensitiveInfo } from '../../utils/filter.util';
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
@@ -30,10 +30,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
       `Http Status: ${status} Error Message: ${JSON.stringify(message)}`,
       exception instanceof Error ? exception.stack : '',
     );
-
     // 예외 응답 전송
     response.status(status).json({
       statusCode: status,
+      message: message.message,
       timestamp: new Date().toISOString(),
       path: request.url,
     });

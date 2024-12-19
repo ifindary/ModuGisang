@@ -28,11 +28,9 @@ export class AuthService {
   }
   // 토큰 Payload에 해당하는 아아디의 유저 가져오기
   async tokenValidateUser(payload: Payload): Promise<UserDto | undefined> {
-    console.log('payload._id:', payload._id);
     const user = await this.userService.findOneByID(payload._id);
     if (!user) {
-      console.log('No user found with ID:', payload._id);
-      throw new UnauthorizedException('User does not exist');
+      throw new UnauthorizedException('해당 유저를 찾을 수 없습니다.');
     }
     return user;
   }
@@ -46,7 +44,6 @@ export class AuthService {
         expiresIn: this.configService.get<string>('REFRESH_TOKEN_EXP'),
       },
     );
-    console.log('\n@@@@@@@@@@refreshToken:', result);
     return result;
   }
 
@@ -57,7 +54,6 @@ export class AuthService {
         secret: this.configService.get<string>('REFRESH_TOKEN_SECRET_KEY'),
       });
       const userId = decodedRefreshToken._id;
-      console.log('@@@@ refresh 해석 userId : ', userId);
 
       const user = await this.userService.getUserIfRefreshTokenMatches(
         refreshToken,
@@ -65,7 +61,7 @@ export class AuthService {
       );
 
       if (!user) {
-        throw new UnauthorizedException('Invalid user!');
+        throw new UnauthorizedException('리프레쉬 토큰이 유효하지 않습니다.');
       }
 
       const accessToken = await this.generateAccessToken(user); // userdto로 변환
@@ -77,16 +73,15 @@ export class AuthService {
     } catch (err) {
       if (err.name === 'JsonWebTokenError') {
         // JWT 형식 오류
-        console.error('Invalid JWT token:', err.message);
-        throw new UnauthorizedException('Invalid token format!');
+        throw new UnauthorizedException('잘못된 토큰 형식입니다.');
       } else if (err.name === 'TokenExpiredError') {
         // JWT 만료 오류
-        console.error('Expired JWT token:', err.message);
-        throw new UnauthorizedException('Token has expired!');
+        throw new UnauthorizedException('토큰이 만료되었습니다.');
       } else {
         // 기타 오류
-        console.error('Error during token refresh:', err);
-        throw new UnauthorizedException('Could not refresh token!');
+        throw new UnauthorizedException(
+          '리프레쉬 토큰을 사용하는 도중 오류가 발생하였습니다.',
+        );
       }
     }
   }
@@ -94,7 +89,7 @@ export class AuthService {
   async generateAccessToken(userDto: UserDto): Promise<string> {
     const userFind = await this.userService.findUser(userDto.email);
     if (!userFind || userFind.password != userDto.password) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('액세스 토큰 생성 실패하였습니다.');
     }
     const payload = {
       sub: userFind._id,
@@ -106,7 +101,6 @@ export class AuthService {
     });
   }
   async authNumcheck(email: string, data: string) {
-    console.log('Inservice data :' + data);
     const serverNum = await this.redisService.get(email);
     if (serverNum === data) {
       return true;
