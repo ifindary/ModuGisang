@@ -14,7 +14,6 @@ const HostRoute = () => {
   const isHost = userId === challengeData.hostId;
 
   if (!isHost) {
-    alert('정상적인 접근이 아닙니다.');
     return <Navigate to="/main" replace />;
   }
 

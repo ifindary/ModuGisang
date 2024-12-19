@@ -129,7 +129,7 @@ const EditChallenge = () => {
       .toISOString()
       .slice(0, 10);
 
-    const response = await handleEditChallenge({
+    handleEditChallenge({
       newChallengeData: {
         hostId: userId,
         duration: Number(duration),
@@ -137,16 +137,6 @@ const EditChallenge = () => {
         wakeTime: isoWakeTime,
       },
     });
-
-    const { isLoading: isEditChallengeLoading, error: editChallengeError } =
-      response;
-    if (!isEditChallengeLoading && !editChallengeError) {
-      alert('챌린지가 수정되었습니다.');
-      navigate('/main');
-    } else {
-      alert(editChallengeError);
-      window.location.reload();
-    }
   };
 
   const handleDelete = async e => {

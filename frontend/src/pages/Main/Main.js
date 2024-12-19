@@ -57,8 +57,6 @@ const Main = () => {
     }
   }, []);
 
-  console.log(isHost);
-
   if (!userId || !challengeData)
     return (
       <S.LoadingWrapper>

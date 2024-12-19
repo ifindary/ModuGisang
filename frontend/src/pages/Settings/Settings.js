@@ -25,8 +25,12 @@ const Settings = () => {
 
   const { getMyData } = useContext(UserContext);
   const user = useContext(UserContext);
-  const { challengeData, handleGiveUpBeforeChallenge } =
-    useContext(ChallengeContext);
+  const {
+    challengeData,
+    handleGiveUpBeforeChallenge,
+    isChallengeStarted,
+    handleGiveUpChallenge,
+  } = useContext(ChallengeContext);
   const { accessToken, userId } = useContext(AccountContext);
 
   const [isLogoutLoading, setIsLogoutLoading] = useState(false);
@@ -82,15 +86,15 @@ const Settings = () => {
     }
   };
 
-  const ON_CLICK_HANDLERS = [
-    () => {
-      handleGiveUpBeforeChallenge();
-    },
-    () => {
-      console.log('host');
+  const handleClick = () => {
+    if (isChallengeStarted) {
+      handleGiveUpChallenge();
+    } else if (isHost) {
       navigate('/editChallenge');
-    },
-  ];
+    } else {
+      handleGiveUpBeforeChallenge();
+    }
+  };
 
   //////////////////////////////////////////
 
@@ -206,8 +210,14 @@ const Settings = () => {
 
         {/* <LongBtn btnName="연습 게임 진행하기" onClickHandler={handlePractice} /> */}
         {hasChallenge && (
-          <ChallengeEditWrapper onClick={ON_CLICK_HANDLERS[+isHost]}>
-            {isHost ? <Text>챌린지 수정</Text> : <Text>챌린지 포기</Text>}
+          <ChallengeEditWrapper onClick={handleClick}>
+            {isChallengeStarted ? (
+              <Text>챌린지 포기</Text>
+            ) : isHost ? (
+              <Text>챌린지 수정</Text>
+            ) : (
+              <Text>챌린지 포기</Text>
+            )}
           </ChallengeEditWrapper>
         )}
         <ChangePasswordWrapper onClick={() => navigate('/changePassword')}>

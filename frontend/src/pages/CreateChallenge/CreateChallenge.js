@@ -208,7 +208,7 @@ const CreateChallenge = () => {
       .toISOString()
       .slice(0, 10);
 
-    const response = await handleCreateChallenge({
+    handleCreateChallenge({
       newChallengeData: {
         hostId: userId,
         duration: Number(duration),
@@ -217,11 +217,8 @@ const CreateChallenge = () => {
         mates,
       },
     });
+
     setIsCreateChallengeLoading(false);
-    if (response.data) {
-      alert('챌린지가 생성되었습니다.');
-      navigate('/main');
-    }
   };
 
   return (

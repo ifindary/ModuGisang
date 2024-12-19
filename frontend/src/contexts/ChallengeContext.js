@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { challengeServices } from '../apis/challengeServices';
 import useFetch from '../hooks/useFetch';
+import useHandleError from '../hooks/useHandleError';
 
 import { AccountContext, UserContext } from './';
 
@@ -10,6 +12,8 @@ const ChallengeContextProvider = ({ children }) => {
   const { userId, accessToken } = useContext(AccountContext);
   const { challengeId, getMyData } = useContext(UserContext);
   const { fetchData } = useFetch();
+  const navigate = useNavigate();
+  const handleError = useHandleError();
 
   const [challengeData, setChallengeData] = useState({
     // challengeId: 6,
@@ -61,11 +65,16 @@ const ChallengeContextProvider = ({ children }) => {
       isLoading: isCreateChallengeLoading,
       data: createChallengeData,
       error: createChallengeError,
+      message: createChallengeMessage,
+      status: createChallengeStatus,
     } = response;
 
     if (!isCreateChallengeLoading && createChallengeData) {
+      console.log(response);
+      alert('챌린지가 생성되었습니다.');
+      navigate('/main');
     } else if (!isCreateChallengeLoading && createChallengeError) {
-      console.error(createChallengeError);
+      handleError(createChallengeMessage, createChallengeStatus);
     }
 
     return response;
@@ -84,11 +93,17 @@ const ChallengeContextProvider = ({ children }) => {
       isLoading: isEditChallengeLoading,
       data: editChallengeData,
       error: editChallengeError,
+      status: editChallengeStatus,
+      message: editChallengeMessage,
     } = response;
 
     if (!isEditChallengeLoading && editChallengeData) {
+      console.log(response);
+      alert('챌린지가 수정되었습니다.');
+      navigate('/main');
     } else if (!isEditChallengeLoading && editChallengeError) {
-      console.error(editChallengeError);
+      handleError(editChallengeMessage, editChallengeStatus);
+      window.location.reload();
     }
     return response;
   };
@@ -106,12 +121,15 @@ const ChallengeContextProvider = ({ children }) => {
       isLoading: isGiveUpChallengeLoading,
       data: giveUpChallengeData,
       error: giveUpChallengeError,
+      message: giveUpChallengeMessage,
+      status: giveUpChallengeStatus,
     } = response;
 
     if (!isGiveUpChallengeLoading && giveUpChallengeData) {
       console.log(response);
+      console.log(giveUpChallengeData);
     } else if (!isGiveUpChallengeLoading && giveUpChallengeError) {
-      console.error(giveUpChallengeError);
+      handleError(giveUpChallengeMessage, giveUpChallengeStatus);
     } else {
       console.log(response);
     }
@@ -128,15 +146,20 @@ const ChallengeContextProvider = ({ children }) => {
     );
 
     const {
-      isLoading: isGiveUpChallengeLoading,
-      data: giveUpChallengeData,
-      error: giveUpChallengeError,
+      isLoading: isGiveUpBeforChallengeLoading,
+      data: giveUpBeforeChallengeData,
+      error: giveUpBeforeChallengeError,
+      message: giveUpBeforeChallengeMessage,
+      status: giveUpBeforeChallengeStatus,
     } = response;
 
-    if (!isGiveUpChallengeLoading && giveUpChallengeData) {
+    if (!isGiveUpBeforChallengeLoading && giveUpBeforeChallengeData) {
       console.log(response);
-    } else if (!isGiveUpChallengeLoading && giveUpChallengeError) {
-      console.error(giveUpChallengeError);
+      alert('챌린지 포기에 성공하였습니다.');
+      window.location.reload();
+    } else if (!isGiveUpBeforChallengeLoading && giveUpBeforeChallengeError) {
+      console.error(giveUpBeforeChallengeError);
+      handleError(giveUpBeforeChallengeMessage, giveUpBeforeChallengeStatus);
     } else {
       console.log(response);
     }
@@ -189,9 +212,15 @@ const ChallengeContextProvider = ({ children }) => {
     } = response;
 
     if (!isTodayChallengeDataLoading && todayChallengeData) {
+      console.log(response);
       setIsAttended(true);
     } else if (!isTodayChallengeDataLoading && todayChallengeDataError) {
-      console.error(todayChallengeDataError);
+      console.log(response);
+      // handleError(
+      //   todayChallengeDataError.message,
+      //   todayChallengeDataError.status,
+      // );
+      // 에러 처리 추가
     }
   };
 
