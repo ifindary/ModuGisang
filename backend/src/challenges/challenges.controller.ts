@@ -90,9 +90,11 @@ export class ChallengesController {
 
   @Post('edit')
   async editChallenge(@Body() editChallengeDto: EditChallengeDto) {
-    const challenge =
+    const challengeResult =
       await this.challengeService.editChallenge(editChallengeDto);
-    return challenge;
+    if (challengeResult.affected !== 0) {
+      return { message: '챌린지 수정 성공', status: 200 };
+    }
   }
 
   @Post('delete/:challengeId/:userId') // 챌린지 생성하고 시작하지 않고 삭제하는 경우
