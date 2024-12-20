@@ -34,7 +34,4 @@ export class CreateChallengeDto {
   @Type(() => Date)
   @IsDate()
   wakeTime: Date; // 기상 시간, 'time' 타입은 JavaScript에서 Date 타입으로 처리
-
-  @IsArray()
-  mates: string; // JSON 타입 데이터, 구체적인 구조는 클라이언트와 서버 간에 정의 필요
 }

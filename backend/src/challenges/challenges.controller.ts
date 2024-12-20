@@ -23,6 +23,7 @@ import { ChallengeResponseDto } from './dto/challengeResponse.dto';
 import { ChallengeResultDto } from './dto/challengeResult.dto';
 import RedisCacheService from 'src/redis-cache/redis-cache.service';
 import { EditChallengeDto } from './dto/editChallenge.dto';
+import { SendInvitationDto } from './dto/sendInvitationDto';
 
 @UseGuards(AuthenticateGuard)
 @Controller('api/challenge')
@@ -39,11 +40,14 @@ export class ChallengesController {
     return await this.challengeService.getChallengeInfo(challengeId);
   }
 
+  @Post('send-invitation')
+  async sendInvitation(@Body() sendInvitationDto: SendInvitationDto) {
+    const result =
+      await this.challengeService.sendInvitation(sendInvitationDto);
+    return result;
+  }
   @Post('create')
   async createChallenge(@Body() createChallengeDto: CreateChallengeDto) {
-    if (createChallengeDto.mates.length > 4) {
-      throw new BadRequestException('챌린지 참여 인원이 초과되었습니다.');
-    }
     try {
       const challenge =
         await this.challengeService.createChallenge(createChallengeDto);
@@ -53,10 +57,6 @@ export class ChallengesController {
         createChallengeDto.hostId,
         challenge._id,
       );
-
-      for (const mate of createChallengeDto.mates) {
-        await this.challengeService.sendInvitation(challenge._id, mate);
-      }
 
       return challenge;
     } catch (error) {
@@ -72,8 +72,6 @@ export class ChallengesController {
       if (error instanceof QueryFailedError) {
         if (error.message.includes('UQ_host_active_challenge')) {
           throw new BadRequestException('이미 진행 중인 챌린지가 있습니다.');
-        } else if (error.message.includes('UQ_invitation')) {
-          throw new ConflictException('이미 초대된 사용자입니다.');
         } else {
           throw new InternalServerErrorException(
             '챌린지 생성 중 DB 오류가 발생했습니다.',
