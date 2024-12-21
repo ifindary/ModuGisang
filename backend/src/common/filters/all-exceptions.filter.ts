@@ -26,14 +26,31 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const filteredBody = filterSensitiveInfo(request.body);
     const filteredHeaders = filterSensitiveInfo(request.headers);
 
-    this.logger.error(
-      `Http Status: ${status} Error Message: ${JSON.stringify(message)}`,
-      exception instanceof Error ? exception.stack : '',
-    );
+    // 클라이언트 IP 추출
+    const clientIp = request.headers['x-forwarded-for'] || request.ip;
+
+    // 로그 메시지 구조화
+    const logDetails = {
+      status,
+      message: typeof message === 'object' ? message : { message },
+      request: {
+        method: request.method,
+        url: request.url,
+        ip: clientIp,
+        userAgent: request.headers['user-agent'],
+        headers: filteredHeaders,
+        body: filteredBody,
+      },
+      stack: exception instanceof Error ? exception.stack : undefined,
+    };
+
+    // 로그 출력
+    this.logger.error('Exception Caught', logDetails);
+
     // 예외 응답 전송
     response.status(status).json({
       statusCode: status,
-      message: message.message,
+      message: typeof message === 'object' ? message.message : message,
       timestamp: new Date().toISOString(),
       path: request.url,
     });
