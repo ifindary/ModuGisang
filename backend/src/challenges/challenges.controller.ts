@@ -94,7 +94,9 @@ export class ChallengesController {
     const challengeResult =
       await this.challengeService.editChallenge(editChallengeDto);
     if (challengeResult.affected !== 0) {
-      return res.status(HttpStatus.CREATED).send('챌린지 수정 성공');
+      return res
+        .status(HttpStatus.CREATED)
+        .send('챌린지 수정에 성공하였습니다.');
     }
   }
 
@@ -113,7 +115,7 @@ export class ChallengesController {
       'resetOnly' in deleteChallengeResult &&
       deleteChallengeResult.resetOnly
     ) {
-      return res.status(HttpStatus.OK).send('챌린지 탈퇴 성공');
+      return res.status(HttpStatus.OK).send('챌린지 탈퇴에 성공하였습니다.');
     }
 
     // 호스트가 챌린지를 삭제한 경우
@@ -122,13 +124,13 @@ export class ChallengesController {
       deleteChallengeResult.affected &&
       deleteChallengeResult.affected > 0
     ) {
-      return res.status(HttpStatus.OK).send('챌린지 삭제 성공');
+      return res.status(HttpStatus.OK).send('챌린지 삭제에 성공하였습니다.');
     }
 
     // 삭제 실패한 경우
     return res
       .status(HttpStatus.INTERNAL_SERVER_ERROR)
-      .send('챌린지 삭제 실패');
+      .send('챌린지 삭제에 실패하였습니다.');
   }
 
   // 로컬에 저장한 챌린지 값으로 현재 날짜랑 챌린지 날짜 비교해서 넘은 경우만 호출
@@ -180,7 +182,7 @@ export class ChallengesController {
     if (result.success === true) {
       return 'accept';
     } else {
-      throw new BadRequestException('챌린지 초대 승낙 실패');
+      throw new BadRequestException('챌린지 초대 승낙 실패하였습니다.');
     }
   }
 
@@ -250,7 +252,9 @@ export class ChallengesController {
     try {
       // 챌린지 포기 로직 실행
       await this.challengeService.challengeGiveUp(challengeId, userId);
-      return res.status(HttpStatus.CREATED).send('챌린지 포기 성공');
+      return res
+        .status(HttpStatus.CREATED)
+        .send('챌린지 포기에 성공하였습니다.');
     } catch (error) {
       throw new HttpException(
         {
