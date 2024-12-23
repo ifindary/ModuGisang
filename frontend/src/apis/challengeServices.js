@@ -117,7 +117,7 @@ const giveupChallenge = async ({ accessToken, challengeId, userId }) => {
   return await API.post(url, {}, config);
 };
 
-const giveupBeforChallenge = async ({ accessToken, challengeId, userId }) => {
+const giveupBeforeChallenge = async ({ accessToken, challengeId, userId }) => {
   const url = `/challenge/delete/${challengeId}/${userId}`;
   const config = {
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -171,6 +171,6 @@ export const challengeServices = {
   editChallenge,
   deleteChallenge,
   giveupChallenge,
-  giveupBeforChallenge,
+  giveupBeforeChallenge,
   addMatesToChallenge,
 };

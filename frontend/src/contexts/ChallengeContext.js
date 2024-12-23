@@ -138,7 +138,7 @@ const ChallengeContextProvider = ({ children }) => {
 
   const handleGiveUpBeforeChallenge = async () => {
     const response = await fetchData(() =>
-      challengeServices.giveupBeforChallenge({
+      challengeServices.giveupBeforeChallenge({
         accessToken,
         challengeId,
         userId,
