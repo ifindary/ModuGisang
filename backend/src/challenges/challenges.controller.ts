@@ -95,7 +95,7 @@ export class ChallengesController {
       await this.challengeService.editChallenge(editChallengeDto);
     if (challengeResult.affected !== 0) {
       return res
-        .status(HttpStatus.CREATED)
+        .status(HttpStatus.NO_CONTENT)
         .send('챌린지 수정에 성공하였습니다.');
     }
   }
@@ -115,7 +115,9 @@ export class ChallengesController {
       'resetOnly' in deleteChallengeResult &&
       deleteChallengeResult.resetOnly
     ) {
-      return res.status(HttpStatus.OK).send('챌린지 탈퇴에 성공하였습니다.');
+      return res
+        .status(HttpStatus.NO_CONTENT)
+        .send('챌린지 탈퇴에 성공하였습니다.');
     }
 
     // 호스트가 챌린지를 삭제한 경우
@@ -124,7 +126,9 @@ export class ChallengesController {
       deleteChallengeResult.affected &&
       deleteChallengeResult.affected > 0
     ) {
-      return res.status(HttpStatus.OK).send('챌린지 삭제에 성공하였습니다.');
+      return res
+        .status(HttpStatus.NO_CONTENT)
+        .send('챌린지 삭제에 성공하였습니다.');
     }
 
     // 삭제 실패한 경우
@@ -253,7 +257,7 @@ export class ChallengesController {
       // 챌린지 포기 로직 실행
       await this.challengeService.challengeGiveUp(challengeId, userId);
       return res
-        .status(HttpStatus.CREATED)
+        .status(HttpStatus.NO_CONTENT)
         .send('챌린지 포기에 성공하였습니다.');
     } catch (error) {
       throw new HttpException(
@@ -261,7 +265,7 @@ export class ChallengesController {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: error.message,
         },
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
