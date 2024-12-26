@@ -11,6 +11,7 @@ const PAGE_TYPES = [
   'myStreak',
   'joinChallenge',
   'createChallenge',
+  'editChallenge',
   'settings',
   'changePassword',
   'privacyPolicy',
@@ -42,6 +43,8 @@ const NavBar = () => {
         navigate('/');
       }
     } else if (pageType === 'changePassword') {
+      navigate('/settings');
+    } else if (pageType === 'editChallenge') {
       navigate('/settings');
     } else if (pageType === 'signUp' || pageType === 'forgotPassword') {
       navigate('/signIn');
@@ -79,6 +82,7 @@ const NavBar = () => {
     myStreak: '나의 기록',
     joinChallenge: '챌린지 참여',
     createChallenge: '챌린지 만들기',
+    editChallenge: '챌린지 수정',
     settings: '설정',
     changePassword: '비밀번호 변경',
     privacyPolicy: '개인정보보호방침',

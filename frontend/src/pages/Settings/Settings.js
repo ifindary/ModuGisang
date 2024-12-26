@@ -25,13 +25,21 @@ const Settings = () => {
 
   const { getMyData } = useContext(UserContext);
   const user = useContext(UserContext);
-  const { challengeData } = useContext(ChallengeContext);
+  const {
+    challengeData,
+    handleGiveUpBeforeChallenge,
+    isChallengeStarted,
+    handleGiveUpChallenge,
+  } = useContext(ChallengeContext);
   const { accessToken, userId } = useContext(AccountContext);
 
   const [isLogoutLoading, setIsLogoutLoading] = useState(false);
   const [affirmation, setAffirmation] = useState('');
   const [isAbleInput, setIsAbleInput] = useState(false);
   const [isExceeded30, setIsExceeded30] = useState(false);
+
+  const hasChallenge = Number(user.challengeId) !== -1;
+  const isHost = userId === challengeData.hostId;
 
   //////////////////////////////////////////
   // const [wakeTime, setWakeTime] = useState('');
@@ -75,6 +83,16 @@ const Settings = () => {
       window.location.reload();
     } else if (changeAffirmationError) {
       alert(changeAffirmationError);
+    }
+  };
+
+  const handleClick = () => {
+    if (isChallengeStarted) {
+      handleGiveUpChallenge();
+    } else if (isHost) {
+      navigate('/editChallenge');
+    } else {
+      handleGiveUpBeforeChallenge();
     }
   };
 
@@ -191,7 +209,17 @@ const Settings = () => {
         </> */}
 
         {/* <LongBtn btnName="연습 게임 진행하기" onClickHandler={handlePractice} /> */}
-
+        {hasChallenge && (
+          <ChallengeEditWrapper onClick={handleClick}>
+            {isChallengeStarted ? (
+              <Text>챌린지 포기</Text>
+            ) : isHost ? (
+              <Text>챌린지 수정</Text>
+            ) : (
+              <Text>챌린지 포기</Text>
+            )}
+          </ChallengeEditWrapper>
+        )}
         <ChangePasswordWrapper onClick={() => navigate('/changePassword')}>
           <Text>비밀번호 변경</Text>
           <Icon
@@ -282,6 +310,10 @@ const LogoutWrapper = styled.div`
 `;
 
 const ChangePasswordWrapper = styled(LogoutWrapper)`
+  border: 2px solid ${({ theme }) => theme.colors.primary.emerald};
+`;
+
+const ChallengeEditWrapper = styled(LogoutWrapper)`
   border: 2px solid ${({ theme }) => theme.colors.primary.emerald};
 `;
 
