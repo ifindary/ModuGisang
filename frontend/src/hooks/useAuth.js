@@ -107,7 +107,7 @@ const useAuth = () => {
     }
     setIsVerifyCodeCheckLoading(true);
     const response = await fetchData(() =>
-      authServices.verifyAuthCode({ trimmedVerifyCode, email }),
+      authServices.verifyAuthCode({ verifyCode: trimmedVerifyCode, email }),
     );
     const {
       isLoading: isVerifyCodeCheckLoading,
