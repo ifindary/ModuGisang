@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   NavBar,
@@ -7,33 +7,23 @@ import {
   OutlineBox,
   CustomRadio,
   CustomCalendar,
-  InputLine,
-  Icon,
 } from '../../components';
 import useFetch from '../../hooks/useFetch';
-import { AccountContext, ChallengeContext } from '../../contexts';
+import { AccountContext, ChallengeContext, UserContext } from '../../contexts';
 import { challengeServices } from '../../apis/challengeServices';
 import * as S from '../../styles/common';
 import styled from 'styled-components';
 
-const CreateChallenge = () => {
+const EditChallenge = () => {
   const navigate = useNavigate();
   const { fetchData } = useFetch();
   const [duration, setDuration] = useState(7);
   const [startDate, setStartDate] = useState(new Date());
   const [range, setRange] = useState([new Date(), new Date()]);
   const [wakeTime, setWakeTime] = useState('');
-  const [mates, setMates] = useState([]);
-  const [emailInput, setEmailInput] = useState('');
   const { accessToken, userId } = useContext(AccountContext);
-  const { handleCreateChallenge } = useContext(ChallengeContext);
-  const [isCreateChallengeLoading, setIsCreateChallengeLoading] =
-    useState(false);
-
-  const [isInputFocused, setIsInputFocused] = useState(false);
-  const [isScrolling, setIsScrolling] = useState(false);
-
-  const emailInputRef = useRef(null);
+  const { challengeId } = useContext(UserContext);
+  const { handleEditChallenge } = useContext(ChallengeContext);
 
   const hours = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
   const minutes = Array.from({ length: 60 }, (_, i) =>
@@ -70,6 +60,7 @@ const CreateChallenge = () => {
     setHour(newHour);
     settingWakeTime(newHour, minute);
   };
+
   const settingWakeTime = (h, m) => {
     const formattedHour = String(h).padStart(2, '0');
     const formattedMinute = String(m).padStart(2, '0');
@@ -94,6 +85,7 @@ const CreateChallenge = () => {
     { label: '30일 (은메달)', value: 30 },
     { label: '100일 (금메달)', value: 100 },
   ];
+
   const handleRadioChange = e => {
     setDuration(Number(e.target.value));
   };
@@ -123,83 +115,12 @@ const CreateChallenge = () => {
     }
   };
 
-  const handleEmailChange = e => {
-    setEmailInput(e.target.value);
-  };
-
-  const checkEmail = async e => {
-    e.preventDefault();
-
-    if (emailInput === '') {
-      alert('이메일을 입력해주세요.');
-      return;
-    }
-
-    const response = await fetchData(() =>
-      challengeServices.checkMateAvailability({
-        accessToken,
-        email: emailInput,
-      }),
-    );
-
-    const { status, data, error } = response;
-    if (status === 200) {
-      if (!data.isEngaged) {
-        const alreadyExists = mates.some(mate => mate === emailInput);
-        if (alreadyExists) {
-          alert('이미 추가한 메이트입니다.');
-          setEmailInput('');
-          return;
-        }
-        setMates([...mates, emailInput]);
-        setEmailInput('');
-      } else if (data.isEngaged) {
-        alert('메이트가 이미 다른 챌린지에 참여 중입니다.');
-        setEmailInput('');
-      }
-    } else if (error) {
-      alert('사용자를 찾을 수 없습니다. 이메일을 확인해 주세요.');
-      setEmailInput('');
-    }
-  };
-
-  const deleteMate = index => {
-    setMates(mates.filter((_, mateIndex) => mateIndex !== index));
-  };
-
   const canSubmit = () => {
     return userId && duration && startDate && wakeTime;
   };
 
-  const handleKeyDownEmail = async e => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (emailInputRef.current) {
-        emailInputRef.current.blur();
-      }
-    }
-  };
-
-  const handleFocus = (inputRef, focusState) => {
-    setIsInputFocused(focusState);
-    if (inputRef.current && focusState) {
-      setIsScrolling(true);
-      inputRef.current.focus();
-      inputRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-      setTimeout(() => setIsScrolling(false), 1000);
-    }
-  };
-
   const handleSubmit = async e => {
     e.preventDefault();
-
-    if (mates.length > 4) {
-      alert('친구는 최대 4명까지 초대 가능합니다.');
-      return;
-    }
 
     const isoWakeTime = convertToISODate(startDate, wakeTime);
     const localStartDate = new Date(
@@ -208,17 +129,34 @@ const CreateChallenge = () => {
       .toISOString()
       .slice(0, 10);
 
-    handleCreateChallenge({
+    handleEditChallenge({
       newChallengeData: {
         hostId: userId,
         duration: Number(duration),
         startDate: localStartDate,
         wakeTime: isoWakeTime,
-        mates,
       },
     });
+  };
 
-    setIsCreateChallengeLoading(false);
+  const handleDelete = async e => {
+    e.preventDefault();
+    const response = await fetchData(() =>
+      challengeServices.deleteChallenge({
+        accessToken,
+        challengeId,
+        userId,
+      }),
+    );
+    const { isLoading: isDeleteChallengeLoading, error: deleteChallengeError } =
+      response;
+    if (!isDeleteChallengeLoading && !deleteChallengeError) {
+      alert('챌린지가 삭제되었습니다.');
+      navigate('/main');
+    } else {
+      alert(deleteChallengeError);
+      console.log(response);
+    }
   };
 
   return (
@@ -273,8 +211,6 @@ const CreateChallenge = () => {
         />
 
         <Title>기상 시간</Title>
-
-        {/* 다이얼 시간 선택 */}
         <TimeBox>
           <TimePicker
             isList={true}
@@ -297,47 +233,22 @@ const CreateChallenge = () => {
             onSelectedChange={settingPeriod}
           />
         </TimeBox>
+        <EditBtn onClick={handleDelete}>
+          <Text>챌린지 삭제</Text>
+        </EditBtn>
 
-        <Title>미라클 메이트 초대</Title>
-        <InputLine
-          ref={emailInputRef}
-          hasIcon={true}
-          type="email"
-          icon="search"
-          iconStyle={searchIcon}
-          value={emailInput}
-          onChange={handleEmailChange}
-          onKeyDown={handleKeyDownEmail}
-          onClickHandler={checkEmail}
-          onFocus={() => handleFocus(emailInputRef, true)}
-          onBlur={() => handleFocus(emailInputRef, false)}
-        />
-
-        <InvitedBox>
-          <ul>
-            {mates.map((mate, index) => (
-              <InvitedMate key={index}>
-                <MiniCircle /> {mate}
-                <button onClick={() => deleteMate(index)}>
-                  <Icon icon="close" iconStyle={iconStyle} />
-                </button>
-              </InvitedMate>
-            ))}
-          </ul>
-        </InvitedBox>
         <LongBtn
           type="submit"
-          btnName="챌린지 생성"
+          btnName="수정 완료"
           onClickHandler={handleSubmit}
           isDisabled={!canSubmit()}
         />
-        <Spacer isVisible={isInputFocused} />
       </S.PageWrapper>
     </>
   );
 };
 
-export default CreateChallenge;
+export default EditChallenge;
 
 const CalendarBox = styled(OutlineBox)`
   width: 100%;
@@ -365,34 +276,6 @@ const ChanllengeDuartion = styled.div`
   ${({ theme }) => theme.flex.left};
   flex-direction: column;
   align-items: flex-start;
-`;
-
-const InvitedBox = styled.div`
-  width: 100%;
-  ${({ theme }) => theme.flex.left};
-  flex-direction: column;
-  align-items: flex-start;
-`;
-
-const InvitedMate = styled.li`
-  border: 1px solid ${({ theme }) => theme.colors.primary.purple};
-  padding-left: 10px;
-  border-radius: 30px;
-  margin-bottom: 12px;
-  ${({ theme }) => theme.fonts.IBMsmall}
-  ${({ theme }) => theme.flex.center};
-
-  button {
-    color: white;
-  }
-`;
-
-const MiniCircle = styled.div`
-  background-color: ${({ theme }) => theme.colors.primary.purple};
-  width: 15px;
-  height: 15px;
-  border-radius: 50px;
-  margin-right: 5px;
 `;
 
 const StardEndDay = styled.div`
@@ -432,19 +315,18 @@ const Day = styled.div`
   margin-top: 5px; // 텍스트와 날짜 사이의 간격 추가
 `;
 
-const iconStyle = {
-  size: 11,
-  color: 'purple',
-  hoverColor: 'white',
-};
+const EditBtn = styled.div`
+  width: 100%;
+  height: 50px;
+  padding: 10px;
+  border: 2px solid ${({ theme }) => theme.colors.system.red};
+  border-radius: 20px;
+  ${({ theme }) => theme.flex.center}
+`;
 
-const searchIcon = {
-  size: 20,
-  color: 'purple',
-  hoverColor: 'white',
-};
-
-const Spacer = styled.div`
-  height: ${props => (props.isVisible ? '300px' : '0px')};
-  transition: height 1s ease-in-out;
+const Text = styled.div`
+  margin-right: 10px;
+  ${({ theme }) => theme.fonts.JuaSmall};
+  color: ${({ isColor, theme }) =>
+    isColor ? theme.colors.primary.purple : theme.colors.primary.white};
 `;

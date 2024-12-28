@@ -13,6 +13,7 @@ import {
   Query,
   Req,
   UseGuards,
+  Res,
 } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 import { ChallengesService } from './challenges.service';
@@ -87,11 +88,13 @@ export class ChallengesController {
   }
 
   @Post('edit')
-  async editChallenge(@Body() editChallengeDto: EditChallengeDto) {
+  async editChallenge(@Body() editChallengeDto: EditChallengeDto, @Res() res) {
     const challengeResult =
       await this.challengeService.editChallenge(editChallengeDto);
     if (challengeResult.affected !== 0) {
-      return { message: '챌린지 수정 성공', status: 200 };
+      return res
+        .status(HttpStatus.NO_CONTENT)
+        .send('챌린지 수정에 성공하였습니다.');
     }
   }
 
@@ -99,6 +102,7 @@ export class ChallengesController {
   async deleteChallenge(
     @Param('challengeId') challengeId: number,
     @Param('userId') userId: number,
+    @Res() res,
   ) {
     const deleteChallengeResult = await this.challengeService.deleteChallenge(
       challengeId,
@@ -109,10 +113,9 @@ export class ChallengesController {
       'resetOnly' in deleteChallengeResult &&
       deleteChallengeResult.resetOnly
     ) {
-      return {
-        message: '챌린지 탈퇴 성공',
-        status: 200,
-      };
+      return res
+        .status(HttpStatus.NO_CONTENT)
+        .send('챌린지 탈퇴에 성공하였습니다.');
     }
 
     // 호스트가 챌린지를 삭제한 경우
@@ -121,17 +124,15 @@ export class ChallengesController {
       deleteChallengeResult.affected &&
       deleteChallengeResult.affected > 0
     ) {
-      return {
-        message: '챌린지 삭제 성공',
-        status: 200,
-      };
+      return res
+        .status(HttpStatus.NO_CONTENT)
+        .send('챌린지 삭제에 성공하였습니다.');
     }
 
     // 삭제 실패한 경우
-    return {
-      message: '챌린지 삭제 실패',
-      status: 500,
-    };
+    return res
+      .status(HttpStatus.INTERNAL_SERVER_ERROR)
+      .send('챌린지 삭제에 실패하였습니다.');
   }
 
   // 로컬에 저장한 챌린지 값으로 현재 날짜랑 챌린지 날짜 비교해서 넘은 경우만 호출
@@ -183,7 +184,7 @@ export class ChallengesController {
     if (result.success === true) {
       return 'accept';
     } else {
-      throw new BadRequestException('챌린지 초대 승낙 실패');
+      throw new BadRequestException('챌린지 초대 승낙 실패하였습니다.');
     }
   }
 
@@ -199,12 +200,18 @@ export class ChallengesController {
   async getChallengeResults(
     @Param('userId') userId: number,
     @Param('date') date: Date,
+    @Res() res,
   ): Promise<ChallengeResultDto[]> {
     try {
       const result = await this.challengeService.getResultsByDateAndUser(
         userId,
         date,
       );
+      // if (result === null) {
+      //   return res
+      //     .status(HttpStatus.OK)
+      //     .send('해당 사용자 및 날짜에 대한 출석 기록이 없습니다.');
+      // }
       return result;
     } catch (error) {
       if (error.message === 'Attendance does not exist') {
@@ -242,16 +249,22 @@ export class ChallengesController {
   async challengeGiveUp(
     @Param('challengeId') challengeId: number,
     @Param('userId') userId: number,
+    @Res() res,
   ) {
     try {
       // 챌린지 포기 로직 실행
       await this.challengeService.challengeGiveUp(challengeId, userId);
-      return { status: 200, message: ' 성공' };
+      return res
+        .status(HttpStatus.NO_CONTENT)
+        .send('챌린지 포기에 성공하였습니다.');
     } catch (error) {
-      return {
-        status: error.status || 500,
-        message: error.message || '서버에서 예상치 못한 오류가 발생했습니다.',
-      };
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

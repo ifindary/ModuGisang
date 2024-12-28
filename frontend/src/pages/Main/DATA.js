@@ -17,6 +17,7 @@ export const CARD_STYLES = {
     lineColor: 'purple',
   },
   invitations: { isBold: true, lineColor: 'purple' },
+  inviteMates: { isBold: true, lineColor: 'purple' },
 
   // create: { isBold: true, lineColor: 'gradient' },
   // enter: { isBold: true, lineColor: 'gradient' },

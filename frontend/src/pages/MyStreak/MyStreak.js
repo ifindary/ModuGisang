@@ -66,6 +66,7 @@ const MyStreak = () => {
       error: getCalendarByDateError,
     } = response;
     if (!isGetCalendarByDateLoading && getCalendarByDateData) {
+      console.log(response);
       setChallengeHistory(getCalendarByDateData);
     } else if (!isGetCalendarByDateLoading && getCalendarByDateError) {
       console.error(getCalendarByDateError);

@@ -160,12 +160,11 @@ export class ChallengesService {
   }
 
   async challengeGiveUp(challengeId: number, userId: number): Promise<void> {
-    let challenge = await this.redisCheckChallenge(challengeId);
-    if (!challenge) {
-      challenge = await this.challengeRepository.findOne({
-        where: { _id: challengeId },
-      });
-    }
+    // 캐시 받아 올시 save시 새로운 객체로 인식하여 중복키 문제 발생
+    const challenge = await this.challengeRepository.findOne({
+      where: { _id: challengeId },
+    });
+
     if (!challenge) {
       throw new NotFoundException(`해당 챌린지를 찾을 수 없습니다.`);
     }
