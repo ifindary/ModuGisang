@@ -100,13 +100,14 @@ const useAuth = () => {
     setIsVerifyCodeChecked,
   }) => {
     e.preventDefault();
-    if (verifyCode === '' || verifyCode === undefined) {
+    const trimmedVerifyCode = verifyCode.trim();
+    if (trimmedVerifyCode === '' || trimmedVerifyCode === undefined) {
       alert(ALERT_MESSAGES.INVALID_CODE);
       return;
     }
     setIsVerifyCodeCheckLoading(true);
     const response = await fetchData(() =>
-      authServices.verifyAuthCode({ verifyCode, email }),
+      authServices.verifyAuthCode({ trimmedVerifyCode, email }),
     );
     const {
       isLoading: isVerifyCodeCheckLoading,
