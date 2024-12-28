@@ -49,6 +49,9 @@ export class ChallengesController {
   }
   @Post('create')
   async createChallenge(@Body() createChallengeDto: CreateChallengeDto) {
+    if (createChallengeDto.mates.length > 4) {
+      throw new BadRequestException('챌린지 참여 인원이 초과되었습니다.');
+    }
     try {
       const challenge =
         await this.challengeService.createChallenge(createChallengeDto);
@@ -58,6 +61,13 @@ export class ChallengesController {
         createChallengeDto.hostId,
         challenge._id,
       );
+      for (const mate of createChallengeDto.mates) {
+        const sendInvitationDto: SendInvitationDto = {
+          challengeId: challenge._id,
+          mateEmail: mate,
+        };
+        await this.challengeService.sendInvitation(sendInvitationDto);
+      }
 
       return challenge;
     } catch (error) {
@@ -73,6 +83,8 @@ export class ChallengesController {
       if (error instanceof QueryFailedError) {
         if (error.message.includes('UQ_host_active_challenge')) {
           throw new BadRequestException('이미 진행 중인 챌린지가 있습니다.');
+        } else if (error.message.includes('UQ_invitation')) {
+          throw new ConflictException('이미 초대된 사용자입니다.');
         } else {
           throw new InternalServerErrorException(
             '챌린지 생성 중 DB 오류가 발생했습니다.',
@@ -179,12 +191,18 @@ export class ChallengesController {
 
   @Post('accept-invitation')
   async acceptInvitation(@Body() acceptInvitationDto: AcceptInvitationDto) {
-    const result =
-      await this.challengeService.acceptInvitation(acceptInvitationDto);
-    if (result.success === true) {
-      return 'accept';
-    } else {
-      throw new BadRequestException('챌린지 초대 승낙 실패하였습니다.');
+    try {
+      const result =
+        await this.challengeService.acceptInvitation(acceptInvitationDto);
+      if (result.success === true) {
+        return 'accept';
+      } else {
+        throw new BadRequestException('챌린지 초대 승낙 실패하였습니다.');
+      }
+    } catch (error) {
+      if (error.message === '해당 챌린지가 진행 중 입니다.') {
+        await this.challengeService.deleteInvitation(acceptInvitationDto);
+      }
     }
   }
 

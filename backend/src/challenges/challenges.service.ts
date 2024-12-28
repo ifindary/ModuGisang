@@ -242,6 +242,15 @@ export class ChallengesService {
     const currentParticipants = await this.userRepository.count({
       where: { challengeId: challengeId },
     });
+    const challenge = await this.challengeRepository.findOne({
+      where: { _id: challengeId },
+    });
+    if (!challenge) {
+      throw new NotFoundException('해당 챌린지가 존재하지 않습니다.');
+    }
+    if (this.validateChallengeDate(responseDatedate, challenge)) {
+      throw new BadRequestException('해당 챌린지가 진행 중 입니다.');
+    }
     if (currentParticipants >= 4) {
       //await this.invitaionRepository.delete({ challengeId, guestId });
       throw new BadRequestException('챌린지 참가 인원이 초과되었습니다.');
@@ -268,6 +277,9 @@ export class ChallengesService {
     } catch (e) {
       throw new Error('초대 수락을 처리하는 중에 오류가 발생했습니다.');
     }
+  }
+  async deleteInvitation(invitation: AcceptInvitationDto) {
+    await this.invitationService.deleteInvitation(invitation);
   }
 
   async getChallengeInfo(
