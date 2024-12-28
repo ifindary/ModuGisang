@@ -101,7 +101,7 @@ export class AuthService {
     });
   }
   async authNumcheck(email: string, data: string) {
-    const serverNum = await this.redisService.get(email);
+    const serverNum = (await this.redisService.get(email)).trim();
     if (serverNum === data) {
       return true;
     } else {
