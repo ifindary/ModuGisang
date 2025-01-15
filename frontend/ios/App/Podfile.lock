@@ -1,7 +1,17 @@
 PODS:
   - Capacitor (6.1.1):
     - CapacitorCordova
+  - CapacitorApp (6.0.1):
+    - Capacitor
+  - CapacitorAppLauncher (6.0.2):
+    - Capacitor
+  - CapacitorCamera (6.1.0):
+    - Capacitor
   - CapacitorCordova (6.1.1)
+  - CapacitorDevice (6.0.1):
+    - Capacitor
+  - CapacitorDialog (6.0.1):
+    - Capacitor
   - CapacitorKeyboard (6.0.1):
     - Capacitor
   - CapacitorPluginSafeArea (3.0.3):
@@ -11,7 +21,12 @@ PODS:
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
+  - "CapacitorAppLauncher (from `../../node_modules/@capacitor/app-launcher`)"
+  - "CapacitorCamera (from `../../node_modules/@capacitor/camera`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorDevice (from `../../node_modules/@capacitor/device`)"
+  - "CapacitorDialog (from `../../node_modules/@capacitor/dialog`)"
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
   - CapacitorPluginSafeArea (from `../../node_modules/capacitor-plugin-safe-area`)
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
@@ -19,8 +34,18 @@ DEPENDENCIES:
 EXTERNAL SOURCES:
   Capacitor:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorApp:
+    :path: "../../node_modules/@capacitor/app"
+  CapacitorAppLauncher:
+    :path: "../../node_modules/@capacitor/app-launcher"
+  CapacitorCamera:
+    :path: "../../node_modules/@capacitor/camera"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorDevice:
+    :path: "../../node_modules/@capacitor/device"
+  CapacitorDialog:
+    :path: "../../node_modules/@capacitor/dialog"
   CapacitorKeyboard:
     :path: "../../node_modules/@capacitor/keyboard"
   CapacitorPluginSafeArea:
@@ -30,11 +55,16 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Capacitor: 8941aba4364ba9d1b22188569001f2ce45cc2b00
+  CapacitorApp: 0bc633b4eae40a1f32cd2834788fad3bc42da6a1
+  CapacitorAppLauncher: 9ac785e8d3936388249212b6e16cb32225960c5f
+  CapacitorCamera: 81ce64062cd82b82cc75a79616fda4bd09d7f643
   CapacitorCordova: 8f2cc8d8d3619c566e9418fe8772064a94266106
+  CapacitorDevice: 7097a1deb4224b77fd13a6e60a355d0062a5d772
+  CapacitorDialog: ad752191fdb22a8d0ac199b0754b8a021d86dbf9
   CapacitorKeyboard: 5f32a712adf41e07a61caafb82cf29fb6d8ba123
   CapacitorPluginSafeArea: e1eca7f70974f0e270d96f70cd0a5f51523164b1
   CapacitorStatusBar: 2e4369f99166125435641b1908d05f561eaba6f6
 
-PODFILE CHECKSUM: 7ebd46357dfc79eb4eb910ad824c70dba3ac1079
+PODFILE CHECKSUM: aef9915439f2509f3ae614a23ad495f87fbcb2ab
 
 COCOAPODS: 1.13.0

@@ -1,15 +1,25 @@
 import React from 'react';
-import { Capacitor } from '@capacitor/core';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { GameContextProvider, OpenViduContextProvider } from './contexts';
-import { Signin, Signup, ForgotPassword, ProtectedRoute } from './pages/Auth';
-import { PageNotFound } from './components';
+import {
+  GameContextProvider,
+  OpenViduContextProvider,
+  SafeAreaContextProvider,
+} from './contexts';
+import {
+  Signin,
+  Signup,
+  ForgotPassword,
+  ProtectedRoute,
+  HostRoute,
+} from './pages/Auth';
+import { PageNotFound, OfflinePage, ErrorPage } from './components';
 import {
   Main,
   InGame,
   MyStreak,
   CreateChallenge,
   JoinChallenge,
+  EditChallenge,
   Settings,
   PrivacyPolicy,
   TermsOfService,
@@ -19,148 +29,57 @@ import {
   About,
 } from './pages';
 
-import { SafeAreaProvider } from './contexts/SafeAreaContext'; // SafeAreaProvider 추가
-import SafeArea from './styles/SafeArea'; // SafeAreaWrapper를 가져옴
-
-const PlatformSafeArea = ({ children }) => {
-  const platform = Capacitor.getPlatform();
-
-  if (platform === 'ios') {
-    return <SafeArea>{children}</SafeArea>;
-  }
-
-  // web이나 다른 플랫폼의 경우 SafeArea를 적용하지 않음
-  return <>{children}</>;
-};
+import SafeAreaLayout from './components/SafeArea';
 
 function Router() {
   return (
     <BrowserRouter>
-      <SafeAreaProvider>
-        <Routes>
-          <Route path="/signIn" element={<Signin />} />
-          <Route
-            path="/signUp"
-            element={
-              <SafeArea>
-                <Signup />
-              </SafeArea>
-            }
-          />
-          <Route
-            path="/privacyPolicy"
-            element={
-              <SafeArea>
-                <PrivacyPolicy />
-              </SafeArea>
-            }
-          />
-          <Route
-            path="/termsOfService"
-            element={
-              <SafeArea>
-                <TermsOfService />
-              </SafeArea>
-            }
-          />
-          <Route
-            path="/customerService"
-            element={
-              <SafeArea>
-                <CustomerService />
-              </SafeArea>
-            }
-          />
-          <Route
-            path="/deleteUser"
-            element={
-              <SafeArea>
-                <DeleteUser />
-              </SafeArea>
-            }
-          />
-          <Route
-            path="/forgotPassword"
-            element={
-              <SafeArea>
-                <ForgotPassword />
-              </SafeArea>
-            }
-          />
-          <Route path="/about" element={<About />} />
-          <Route element={<ProtectedRoute />}>
+      <SafeAreaContextProvider>
+        <SafeAreaLayout>
+          <Routes>
+            <Route path="/signIn" element={<Signin />} />
+            <Route path="/signUp" element={<Signup />} />
+            <Route path="/privacyPolicy" element={<PrivacyPolicy />} />
+            <Route path="/termsOfService" element={<TermsOfService />} />
             <Route
-              path="/"
+              path="/customerService"
               element={
-                <PlatformSafeArea>
-                  <Main />
-                </PlatformSafeArea>
+                <SafeAreaLayout>
+                  <CustomerService />
+                </SafeAreaLayout>
               }
             />
-            <Route
-              path="/main"
-              element={
-                <PlatformSafeArea>
-                  <Main />
-                </PlatformSafeArea>
-              }
-            />
-            <Route
-              path="/myStreak"
-              element={
-                <PlatformSafeArea>
-                  <MyStreak />
-                </PlatformSafeArea>
-              }
-            />
-            <Route
-              path="/joinChallenge"
-              element={
-                <PlatformSafeArea>
-                  <JoinChallenge />
-                </PlatformSafeArea>
-              }
-            />
-            <Route
-              path="/createChallenge"
-              element={
-                <PlatformSafeArea>
-                  <CreateChallenge />
-                </PlatformSafeArea>
-              }
-            />
-            <Route
-              path="/startMorning"
-              element={
-                <GameContextProvider>
-                  <OpenViduContextProvider>
-                    <PlatformSafeArea>
+            <Route path="/deleteUser" element={<DeleteUser />} />
+            <Route path="/forgotPassword" element={<ForgotPassword />} />
+            <Route path="/about" element={<About />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<Main />} />
+              <Route path="/main" element={<Main />} />
+              <Route path="/myStreak" element={<MyStreak />} />
+              <Route path="/joinChallenge" element={<JoinChallenge />} />
+              <Route path="/createChallenge" element={<CreateChallenge />} />
+              <Route element={<HostRoute />}>
+                <Route path="/editChallenge" element={<EditChallenge />} />
+              </Route>
+              <Route
+                path="/startMorning"
+                element={
+                  <GameContextProvider>
+                    <OpenViduContextProvider>
                       <InGame />
-                    </PlatformSafeArea>
-                  </OpenViduContextProvider>
-                </GameContextProvider>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <PlatformSafeArea>
-                  <Settings />
-                </PlatformSafeArea>
-              }
-            />
-            <Route
-              path="/changePassword"
-              element={
-                <SafeArea>
-                  <ChangePassword />
-                </SafeArea>
-              }
-            />
-          </Route>
-          <Route path="*" element={<PageNotFound />} />
-        </Routes>
-      </SafeAreaProvider>
+                    </OpenViduContextProvider>
+                  </GameContextProvider>
+                }
+              />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/changePassword" element={<ChangePassword />} />
+            </Route>
+            <Route path="/offline" element={<OfflinePage />} />
+            <Route path="/error" element={<ErrorPage />} />
+            <Route path="*" element={<PageNotFound />} />
+          </Routes>
+        </SafeAreaLayout>
+      </SafeAreaContextProvider>
     </BrowserRouter>
   );
 }

@@ -16,9 +16,13 @@ export class EmailController {
   @Get('check')
   async emailCheck(@Res() res: Response, @Query('email') email: string) {
     const result = await this.emailService.checkAndSendEmail(email);
-    if (result.success) {
+
+    // reuslt 상태의 따른 response 값
+    if (result.status === 'AVAILABLE') {
       res.status(HttpStatus.OK).send(result.message);
-    } else {
+    } else if (result.status === 'RECENTLY_DELETED') {
+      res.status(HttpStatus.GONE).send(result.message);
+    } else if (result.status === 'IN_USE') {
       res.status(HttpStatus.BAD_REQUEST).send(result.message);
     }
   }

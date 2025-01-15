@@ -5,6 +5,12 @@ import { ConfigService } from '@nestjs/config';
 import RedisCacheService from 'src/redis-cache/redis-cache.service';
 import { UserService } from 'src/users/users.service';
 
+enum CheckEmailStatus {
+  AVAILABLE = 'AVAILABLE',
+  IN_USE = 'IN_USE',
+  DELETED = 'RECENTLY_DELETED',
+}
+
 @Injectable()
 export class EmailService {
   private transporter;
@@ -77,14 +83,42 @@ export class EmailService {
 
   async checkAndSendEmail(
     email: string,
-  ): Promise<{ success: boolean; message: string }> {
-    const userExists = await this.userService.findUser(email);
+  ): Promise<{ message: string; status: string }> {
+    const userExists = await this.userService.checkdeletedUser(email);
+
+    // userExists가 존재하고 소프트 삭제된 회원인 경우
+    if (userExists?.deletedAt) {
+      const deletedAtDate = new Date(userExists.deletedAt); // 삭제된 날짜
+      const currentDate = new Date(); // 현재 날짜
+
+      // 삭제된 날짜와 현재 날짜 간의 차이 계산 (밀리초 단위)
+      const diffInMillis = currentDate.getTime() - deletedAtDate.getTime();
+
+      // 30일(밀리초 기준) = 30일 * 24시간 * 60분 * 60초 * 1000ms
+      const THIRTY_DAYS_IN_MILLIS = 30 * 24 * 60 * 60 * 1000;
+
+      // 30일 안에 삭제된 이메일인지 확인
+      if (diffInMillis <= THIRTY_DAYS_IN_MILLIS) {
+        return {
+          message:
+            '탈퇴한 계정의 이메일입니다. 탈퇴 후 30일 이내 동일한 이메일로 가입할 수 없습니다.',
+          status: CheckEmailStatus.DELETED,
+        };
+      }
+    }
+
     if (userExists) {
-      return { success: false, message: '이미 존재하는 이메일입니다.' };
+      return {
+        message: '이미 존재하는 이메일입니다.',
+        status: CheckEmailStatus.IN_USE,
+      };
     } else {
       const random = await this.sendMail(email);
       await this.setRandom(email, random);
-      return { success: true, message: '인증번호 전송완료' };
+      return {
+        message: '인증번호 전송완료',
+        status: CheckEmailStatus.AVAILABLE,
+      };
     }
   }
 

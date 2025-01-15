@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Attendance } from './attendance.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -23,7 +23,9 @@ export class AttendanceService {
       attendance.date = date;
       await this.attandanceRepository.save(attendance);
     } catch (e) {
-      console.error('Failed to save to Attend database:', e);
+      throw new InternalServerErrorException(
+        '서버 오류로 인해 챌린지 참여에 실패하였습니다.',
+      );
     }
   }
 }

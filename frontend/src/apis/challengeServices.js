@@ -72,6 +72,67 @@ const checkMateAvailability = async ({ accessToken, email }) => {
   return await API.get(url, config);
 };
 
+const completeChallenge = async ({ accessToken, challengeId, userId }) => {
+  const url = `/challenge/complete/${challengeId}/${userId}`;
+  const config = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  };
+
+  // post 요청이지만 body가 없는 경우 빈 객체를 전달해야 함!!!
+  return await API.post(url, {}, config);
+};
+
+const editChallenge = async ({
+  accessToken,
+  challengeId,
+  newChallengeData,
+}) => {
+  const url = `/challenge/edit`;
+  const payload = {
+    challengeId: challengeId,
+    hostId: newChallengeData.hostId,
+    duration: newChallengeData.duration,
+    startDate: newChallengeData.startDate,
+    wakeTime: newChallengeData.wakeTime,
+  };
+  const config = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  };
+  return await API.post(url, payload, config);
+};
+
+const deleteChallenge = async ({ accessToken, challengeId, userId }) => {
+  const url = `/challenge/delete/${challengeId}/${userId}`;
+  const config = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  };
+  return await API.post(url, {}, config);
+};
+
+const giveupChallenge = async ({ accessToken, challengeId, userId }) => {
+  const url = `/challenge/give-up/${challengeId}/${userId}`;
+  const config = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  };
+  return await API.post(url, {}, config);
+};
+
+const giveupBeforeChallenge = async ({ accessToken, challengeId, userId }) => {
+  const url = `/challenge/delete/${challengeId}/${userId}`;
+  const config = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  };
+  return await API.post(url, {}, config);
+};
+
+const addMatesToChallenge = async ({ accessToken, challengeId, mates }) => {
+  const url = `/challenge/add-mates/${challengeId}`;
+  const config = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  };
+  return await API.post(url, mates, config);
+};
+
 const getCalendarInfo = async ({ accessToken, userId, month }) => {
   const url = `/challenge/calendar/${userId}/${month}`;
   const config = {
@@ -100,10 +161,16 @@ const getConnectionToken = async ({ accessToken, userData }) => {
 export const challengeServices = {
   getChallengeInfo,
   createChallenge,
+  completeChallenge,
   checkMateAvailability,
   getInvitationInfo,
   acceptInvitation,
   getCalendarInfo,
   getCalendarInfoByDate,
   getConnectionToken,
+  editChallenge,
+  deleteChallenge,
+  giveupChallenge,
+  giveupBeforeChallenge,
+  addMatesToChallenge,
 };

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { NavBar, StyledLink } from '../../components';
 import { ContentWrapper } from './components';
 import { useNavigate } from 'react-router-dom';
@@ -19,10 +19,7 @@ const CustomerService = () => {
         <ContentWrapper>
           <Section>
             <h2>문의하기</h2>
-            <p>
-              모두기상과 관련된 문의가 있을 때는 하단의 이메일로 문의주시면
-              감사하겠습니다.
-            </p>
+            <p>모두기상 관련 문의사항은 아래의 이메일로 보내주시기 바랍니다.</p>
             <p>
               <StyledLink href="mailto:jungle4th.nmm3@gmail.com">
                 jungle4th.nmm3@gmail.com

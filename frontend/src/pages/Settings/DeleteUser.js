@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   InputLine,
   LongBtn,
@@ -6,7 +6,6 @@ import {
   StyledLink,
   LoadingWithText,
 } from '../../components';
-import { AccountContext } from '../../contexts';
 import useAuth from '../../hooks/useAuth';
 import useNavigateWithState from '../../hooks/useNavigateWithState';
 import * as S from '../../styles/common';
@@ -16,15 +15,25 @@ import styled from 'styled-components';
 const DeleteAccount = () => {
   const navigateWithState = useNavigateWithState();
   const { handleDeleteAccount } = useAuth();
-  const { userId } = useContext(AccountContext);
 
   const [password, setPassword] = useState('');
   const [isNoticeChecked, setIsNoticeChecked] = useState(false);
   const [isDeleteUserLoading, setIsDeleteUserLoading] = useState(false);
 
+  const passwordInputRef = useRef(null);
+
   const handlePasswordChange = e => {
     const newPassword = e.target.value;
     setPassword(newPassword);
+  };
+
+  const handleKeyDownPassword = async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (passwordInputRef.current) {
+        passwordInputRef.current.blur();
+      }
+    }
   };
 
   if (isDeleteUserLoading) {
@@ -62,11 +71,13 @@ const DeleteAccount = () => {
         <FormSection>
           <Title>현재 비밀번호</Title>
           <InputLine
+            ref={passwordInputRef}
             hasIcon={false}
             type="password"
             placeholder="비밀번호"
             value={password}
             onChange={handlePasswordChange}
+            onKeyDown={handleKeyDownPassword}
           />
         </FormSection>
         <CheckboxWrapper>

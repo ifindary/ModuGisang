@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { InputLine, LongBtn, NavBar, LoadingWithText } from '../../components';
 import useAuth from '../../hooks/useAuth';
 import useValidation from '../../hooks/useValidation';
 import * as S from '../../styles/common';
 import styled from 'styled-components';
+import { ERROR_MESSAGES } from '../../constants/Messages';
 
 const ChangePassword = () => {
   const { isValidPassword } = useValidation();
@@ -17,6 +18,10 @@ const ChangePassword = () => {
   const [passwordError, setPasswordError] = useState('');
   const [isChangeLoading, setIsChangeLoading] = useState(false);
 
+  const currentPasswordInputRef = useRef(null);
+  const newPasswordInputRef = useRef(null);
+  const checkNewPasswordInputRef = useRef(null);
+
   const handleCurrentPasswordChange = e => {
     setCurrentPassword(e.target.value);
   };
@@ -26,9 +31,7 @@ const ChangePassword = () => {
     setNewPassword(newPassword);
 
     if (newPassword && !isValidPassword(newPassword)) {
-      setPasswordError(
-        '비밀번호는 8자~16자로 숫자와 영문자, 특수문자를 하나씩 포함해야 합니다.',
-      );
+      setPasswordError(ERROR_MESSAGES.INVALID_PASSWORD);
     } else {
       setPasswordError('');
     }
@@ -37,6 +40,33 @@ const ChangePassword = () => {
   const handleCheckNewPasswordChange = e => {
     const newCheckPassword = e.target.value;
     setCheckNewPassword(newCheckPassword);
+  };
+
+  const handleKeyDownCurrentPassword = async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (newPasswordInputRef.current) {
+        newPasswordInputRef.current.focus();
+      }
+    }
+  };
+
+  const handleKeyDownNewPassword = async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (checkNewPasswordInputRef.current) {
+        checkNewPasswordInputRef.current.focus();
+      }
+    }
+  };
+
+  const handleKeyDownCheckNewPassword = async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (checkNewPasswordInputRef.current) {
+        checkNewPasswordInputRef.current.blur();
+      }
+    }
   };
 
   useEffect(() => {
@@ -57,7 +87,7 @@ const ChangePassword = () => {
   if (isChangeLoading) {
     return (
       <S.LoadingWrapper>
-        <LoadingWithText loadingMSG="탈퇴 처리 중..." />
+        <LoadingWithText loadingMSG="비밀번호 변경중..." />
       </S.LoadingWrapper>
     );
   }
@@ -73,29 +103,35 @@ const ChangePassword = () => {
         <FormSection>
           <Title>현재 비밀번호</Title>
           <InputLine
+            ref={currentPasswordInputRef}
             hasIcon={false}
             type="password"
             value={currentPassword}
             onChange={handleCurrentPasswordChange}
+            onKeyDown={handleKeyDownCurrentPassword}
           />
         </FormSection>
         <FormSection>
           <Title>새 비밀번호</Title>
           <InputLine
+            ref={newPasswordInputRef}
             hasIcon={false}
             type="password"
             value={newPassword}
             onChange={handleNewPasswordChange}
+            onKeyDown={handleKeyDownNewPassword}
           />
           {passwordError && <ErrorText>{passwordError}</ErrorText>}
         </FormSection>
         <FormSection>
           <Title>새 비밀번호 확인</Title>
           <InputLine
+            ref={checkNewPasswordInputRef}
             hasIcon={false}
             type="password"
             value={checkNewPassword}
             onChange={handleCheckNewPasswordChange}
+            onKeyDown={handleKeyDownCheckNewPassword}
           />
           {showPasswordError && (
             <WrongPassword>비밀번호가 일치하지 않습니다.</WrongPassword>

@@ -1,33 +1,45 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import styled from 'styled-components';
 import Icon from './Icon';
 
-const InputLine = ({
-  hasIcon,
-  type,
-  icon,
-  iconStyle,
-  value,
-  onChange,
-  onClickHandler,
-  disabled,
-}) => {
-  return (
-    <Wrapper>
-      <InputBox
-        type={type}
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-      />
-      {hasIcon ? (
-        <IconBox onClick={onClickHandler}>
-          <Icon icon={icon} iconStyle={iconStyle} />
-        </IconBox>
-      ) : null}
-    </Wrapper>
-  );
-};
+const InputLine = forwardRef(
+  (
+    {
+      hasIcon,
+      type,
+      icon,
+      iconStyle,
+      value,
+      onChange,
+      onKeyDown,
+      onFocus,
+      onBlur,
+      onClickHandler,
+      disabled,
+    },
+    ref,
+  ) => {
+    return (
+      <Wrapper>
+        <InputBox
+          ref={ref}
+          type={type}
+          value={value}
+          onChange={onChange}
+          onKeyDown={onKeyDown}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          disabled={disabled}
+        />
+        {hasIcon ? (
+          <IconBox onClick={onClickHandler}>
+            <Icon icon={icon} iconStyle={iconStyle} />
+          </IconBox>
+        ) : null}
+      </Wrapper>
+    );
+  },
+);
 
 export default InputLine;
 
@@ -46,8 +58,8 @@ const InputBox = styled.input`
   padding: 15px;
 
   &:focus {
-    outline: none; // 기본 포커스 테두리 제거
-    border: 1px solid ${({ theme }) => theme.colors.primary.purple}; // 포커스 시 새로운 테두리 색상 적용
+    outline: none;
+    border: 1px solid ${({ theme }) => theme.colors.primary.purple};
     background-color: ${({ theme }) => theme.colors.translucent.white};
   }
   &:disabled {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   InputLine,
   LongBtn,
@@ -6,6 +6,7 @@ import {
   StyledLink,
   LoadingWithText,
 } from '../../components';
+import { ERROR_MESSAGES } from '../../constants/Messages';
 import useAuth from '../../hooks/useAuth';
 import useNavigateWithState from '../../hooks/useNavigateWithState';
 import useValidation from '../../hooks/useValidation';
@@ -35,6 +36,15 @@ const Signup = () => {
   const [isOver14Checked, setIsOver14Checked] = useState(false);
   const [isTermsChecked, setIsTermsChecked] = useState(false);
 
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+
+  const emailInputRef = useRef(null);
+  const passwordInputRef = useRef(null);
+  const checkPasswordInputRef = useRef(null);
+  const verifyCodeInputRef = useRef(null);
+  const userNameInputRef = useRef(null);
+
   const { handleCheckEmail, handleCheckVerifyCode, handleSubmitSignUp } =
     useAuth();
 
@@ -43,7 +53,7 @@ const Signup = () => {
     setEmail(newEmail);
 
     if (newEmail && !isValidEmail(newEmail)) {
-      setEmailError('올바른 이메일 주소를 입력해 주세요.');
+      setEmailError(ERROR_MESSAGES.INVALID_EMAIL);
     } else {
       setEmailError('');
       setIsEmailChecked(false);
@@ -54,9 +64,8 @@ const Signup = () => {
     const newUserName = e.target.value;
     setUserName(newUserName);
 
-    // 이름 길이 검증
     if (newUserName.length > 5) {
-      setNameError('이름은 5글자를 넘길 수 없습니다.');
+      setNameError(ERROR_MESSAGES.INVALID_NAME);
     } else {
       setNameError('');
     }
@@ -67,9 +76,7 @@ const Signup = () => {
     setPassword(newPassword);
 
     if (newPassword && !isValidPassword(newPassword)) {
-      setPasswordError(
-        '비밀번호는 8자~16자로 숫자와 영문자, 특수문자를 하나씩 포함해야 합니다.',
-      );
+      setPasswordError(ERROR_MESSAGES.INVALID_PASSWORD);
     } else {
       setPasswordError('');
     }
@@ -79,6 +86,10 @@ const Signup = () => {
     const newCheckPassword = e.target.value;
     setCheckPassword(newCheckPassword);
   };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     if (checkPassword && password) {
@@ -97,6 +108,64 @@ const Signup = () => {
 
   const handleVerifyCodeChange = e => {
     setVerifyCode(e.target.value);
+  };
+
+  const handleKeyDownEmail = async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (verifyCodeInputRef.current) {
+        verifyCodeInputRef.current.focus();
+      }
+    }
+  };
+
+  const handleKeyDownVerifyCode = async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (passwordInputRef.current) {
+        passwordInputRef.current.focus();
+      }
+    }
+  };
+
+  const handleKeyDownPassword = async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (checkPasswordInputRef.current) {
+        checkPasswordInputRef.current.focus();
+      }
+    }
+  };
+
+  const handleKeyDownCheckPassword = async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (userNameInputRef.current) {
+        userNameInputRef.current.focus();
+      }
+    }
+  };
+
+  const handleKeyDownUserName = async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (userNameInputRef.current) {
+        userNameInputRef.current.blur();
+      }
+    }
+  };
+
+  const handleFocus = (inputRef, focusState) => {
+    setIsInputFocused(focusState);
+    if (inputRef.current && focusState) {
+      setIsScrolling(true);
+      inputRef.current.focus();
+      inputRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+      setTimeout(() => setIsScrolling(false), 1000);
+    }
   };
 
   if (isSignUpLoading || isEmailCheckLoading || isVerifyCodeCheckLoading) {
@@ -128,11 +197,15 @@ const Signup = () => {
           <Title>이메일 주소</Title>
           <EmailBox>
             <InputLine
+              ref={emailInputRef}
               hasIcon={false}
               type="email"
               value={email}
               onChange={handleEmailChange}
+              onKeyDown={handleKeyDownEmail}
               disabled={isEmailChecked}
+              onFocus={() => handleFocus(emailInputRef, true)}
+              onBlur={() => handleFocus(emailInputRef, false)}
             />
             <SmallBtn
               onClick={async e =>
@@ -154,10 +227,14 @@ const Signup = () => {
           <Title>인증 코드</Title>
           <EmailBox>
             <InputLine
+              ref={verifyCodeInputRef}
               type="text"
               value={verifyCode}
               onChange={handleVerifyCodeChange}
+              onKeyDown={handleKeyDownVerifyCode}
               disabled={isVerifyCodeChecked}
+              onFocus={() => handleFocus(verifyCodeInputRef, true)}
+              onBlur={() => handleFocus(verifyCodeInputRef, false)}
             />
             <SmallBtn
               onClick={async e =>
@@ -178,20 +255,28 @@ const Signup = () => {
         <FormSection>
           <Title>비밀번호</Title>
           <InputLine
+            ref={passwordInputRef}
             hasIcon={false}
             type="password"
             value={password}
             onChange={handlePasswordChange}
+            onKeyDown={handleKeyDownPassword}
+            onFocus={() => handleFocus(passwordInputRef, true)}
+            onBlur={() => handleFocus(passwordInputRef, false)}
           />
           {passwordError && <ErrorText>{passwordError}</ErrorText>}
         </FormSection>
         <FormSection>
           <Title>비밀번호 확인</Title>
           <InputLine
+            ref={checkPasswordInputRef}
             hasIcon={false}
             type="password"
             value={checkPassword}
             onChange={handleCheckPasswordChange}
+            onKeyDown={handleKeyDownCheckPassword}
+            onFocus={() => handleFocus(checkPasswordInputRef, true)}
+            onBlur={() => handleFocus(checkPasswordInputRef, false)}
           />
         </FormSection>
         {showPasswordError && (
@@ -200,9 +285,13 @@ const Signup = () => {
         <FormSection>
           <Title>이름</Title>
           <InputLine
+            ref={userNameInputRef}
             type="text"
             value={userName}
             onChange={handleUserNameChange}
+            onKeyDown={handleKeyDownUserName}
+            onFocus={() => handleFocus(userNameInputRef, true)}
+            onBlur={() => handleFocus(userNameInputRef, false)}
           />
           {nameError && <ErrorText>{nameError}</ErrorText>}
         </FormSection>
@@ -256,6 +345,7 @@ const Signup = () => {
           }
           disabled={!isFormValid()}
         />
+        <Spacer isVisible={isInputFocused} />
       </S.PageWrapper>
     </>
   );
@@ -284,6 +374,8 @@ const SmallBtn = styled.button`
   ${({ theme }) => theme.fonts.JuaSmall}
   font-size: 20px;
   margin-left: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
 `;
 
 const EmailBox = styled.div`
@@ -330,4 +422,9 @@ const CheckboxLabel = styled.label`
   input {
     margin-right: 8px;
   }
+`;
+
+const Spacer = styled.div`
+  height: ${props => (props.isVisible ? '300px' : '0px')};
+  transition: height 1s ease-in-out;
 `;

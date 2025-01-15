@@ -1,17 +1,18 @@
 import React, { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext, ChallengeContext, AccountContext } from '../../contexts';
-import useCheckTime from '../../hooks/useCheckTime';
+import usePermissionCheck from '../../hooks/usePermissionCheck';
 import BottomFixContent from './cardComponents/BottomFixContent';
 import { NavBar, OutlineBox, LoadingWithText } from '../../components';
 import {
   StreakContent,
   InvitationsContent,
-  CreateContent,
   ChallengeContent,
-  EnterContent,
+  AddMatesContent,
 } from './cardComponents';
 import { CARD_TYPES, CARD_STYLES } from './DATA';
+
+import { Capacitor } from '@capacitor/core';
 
 import styled from 'styled-components';
 import * as S from '../../styles/common';
@@ -20,18 +21,18 @@ const Main = () => {
   const navigate = useNavigate();
 
   const { accessToken, userId } = useContext(AccountContext);
-  const { challengeId, getMyData } = useContext(UserContext);
-  const { challengeData, isAttended } = useContext(ChallengeContext);
-  const { checkTime } = useCheckTime();
+  const { getMyData, challengeId } = useContext(UserContext);
+  const { challengeData, isChallengeStarted } = useContext(ChallengeContext);
+  const { requestMicrophonePermission, requestCameraPermission } =
+    usePermissionCheck();
 
   const hasChallenge = Number(challengeId) !== -1;
+  const isHost = userId === challengeData.hostId;
 
   const CARD_CONTENTS = {
     streak: <StreakContent />,
     invitations: <InvitationsContent />,
-    create: <CreateContent />,
     challenge: <ChallengeContent challenges={challengeData} />,
-    enter: <EnterContent />,
   };
 
   const CARD_ON_CLICK_HANDLERS = {
@@ -40,21 +41,7 @@ const Main = () => {
       // 초대받은 challenge 존재 여부에 따라 분기처리
       navigate('/joinChallenge');
     },
-    create: () => navigate('/createChallenge'),
     challenge: null,
-    enter: () => {
-      const { isTooEarly, isTooLate } = checkTime(challengeData?.wakeTime);
-
-      if (isTooEarly) {
-        alert('너무 일찍 오셨습니다. 10분 전부터 입장 가능합니다.');
-      } else if (isTooLate && !isAttended) {
-        alert('챌린지 참여 시간이 지났습니다. 내일 다시 참여해주세요.');
-      } else if (isTooLate && isAttended) {
-        alert('멋져요! 오늘의 미라클 모닝 성공! 내일 또 만나요');
-      } else {
-        navigate(`/startMorning`);
-      }
-    },
   };
 
   useEffect(() => {
@@ -62,6 +49,13 @@ const Main = () => {
       getMyData();
     }
   }, [challengeData]);
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      requestMicrophonePermission();
+      requestCameraPermission();
+    }
+  }, []);
 
   if (!userId || !challengeData)
     return (
@@ -84,8 +78,16 @@ const Main = () => {
               />
             ),
           )}
+          {!isChallengeStarted && hasChallenge && isHost && (
+            <OutlineBox
+              key={'inviteMates'}
+              content={<AddMatesContent />}
+              onClickHandler={null}
+              boxStyle={CARD_STYLES['inviteMates']}
+            />
+          )}
         </CardsWrapper>
-        <BottomFixContent onClickHandler={CARD_ON_CLICK_HANDLERS} />
+        <BottomFixContent />
       </S.PageWrapper>
     </>
   );
@@ -96,7 +98,10 @@ export default Main;
 const CardsWrapper = styled.div`
   width: 100%;
   height: 100%;
+  flex-grow: 1;
+  overflow-y: auto;
   ${({ theme }) => theme.flex.center}
   flex-direction: column;
   gap: 20px;
+  padding-bottom: 239px;
 `;

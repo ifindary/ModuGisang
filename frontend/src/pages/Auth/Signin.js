@@ -1,23 +1,22 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { LoadingWithText, LongBtn, InputLine } from '../../components';
-
 import useAuth from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-
 import * as S from '../../styles/common';
-
-// import { CONFIGS } from '../../config';
 import styled from 'styled-components';
 import { onlysun } from '../../assets/icons';
 
 const Signin = () => {
-  // const { TEST_EMAIL, TEST_PASSWORD } = CONFIGS;
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
   const { handleSubmitLogIn } = useAuth();
   const navigate = useNavigate();
+
+  const passwordInputRef = useRef(null);
+  const emailInputRef = useRef(null);
 
   const handleLoginEmailChange = e => {
     setLoginEmail(e.target.value);
@@ -27,12 +26,53 @@ const Signin = () => {
     setLoginPassword(e.target.value);
   };
 
+  const handleKeyDownEmail = e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (passwordInputRef.current) {
+        passwordInputRef.current.focus();
+      }
+    }
+  };
+
+  const handleKeyDownPassword = async e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (passwordInputRef.current) {
+        passwordInputRef.current.blur();
+      }
+    }
+  };
+
+  const handleFocus = (inputRef, focusState) => {
+    setIsInputFocused(focusState);
+    if (inputRef.current && focusState) {
+      setIsScrolling(true);
+      inputRef.current.focus();
+      inputRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+      setTimeout(() => setIsScrolling(false), 1000);
+    }
+  };
+
   const goToSignUp = () => {
     navigate('/signUp');
   };
 
   const goToForgotPassword = () => {
     navigate('/forgotPassword');
+  };
+
+  const handleLoginClick = async e => {
+    if (isScrolling) return; // 자동 스크롤링 중 실수로 인한 버튼 눌림 방지
+    await handleSubmitLogIn({
+      e,
+      loginEmail,
+      loginPassword,
+      setIsLoginLoading,
+    });
   };
 
   if (isLoginLoading) {
@@ -50,57 +90,41 @@ const Signin = () => {
         <Title>모두기상</Title>
         <Subtitle>친구와 함께 미라클 모닝 챌린지</Subtitle>
       </TitleBox>
-
       <InputLine
+        ref={emailInputRef}
         hasIcon={true}
         type="email"
         icon="user"
         iconStyle={iconStyle}
         value={loginEmail}
         onChange={handleLoginEmailChange}
-        onClickHandler={null}
+        onKeyDown={handleKeyDownEmail}
+        onFocus={() => handleFocus(emailInputRef, true)}
+        onBlur={() => handleFocus(emailInputRef, false)}
       />
       <InputLine
+        ref={passwordInputRef}
         hasIcon={true}
         type="password"
         icon="key"
         iconStyle={iconStyle}
         value={loginPassword}
         onChange={handleLoginPasswordChange}
-        onClickHandler={null}
+        onKeyDown={handleKeyDownPassword}
+        onFocus={() => handleFocus(passwordInputRef, true)}
+        onBlur={() => handleFocus(passwordInputRef, false)}
       />
-      <>
-        <LongBtn
-          onClickHandler={async e =>
-            await handleSubmitLogIn({
-              e,
-              loginEmail,
-              loginPassword,
-              setIsLoginLoading,
-            })
-          }
-          type="submit"
-          btnName="로그인"
-        />
-        {/* <LongBtn
-          onClickHandler={async e => {
-            e.preventDefault();
-            await handleSubmitLogIn({
-              e,
-              loginEmail: TEST_EMAIL,
-              loginPassword: TEST_PASSWORD,
-              setIsLoginLoading,
-            });
-          }}
-          type="submit"
-          btnName="개발용 로그인"
-        /> */}
-      </>
+      <LongBtn
+        onClickHandler={handleLoginClick}
+        type="submit"
+        btnName="로그인"
+      />
       <AuthOptions>
         <AuthButton onClick={goToForgotPassword}>비밀번호 찾기</AuthButton>
         <Divider>|</Divider>
         <AuthButton onClick={goToSignUp}>회원가입</AuthButton>
       </AuthOptions>
+      <Spacer isVisible={isInputFocused} />
     </S.PageWrapper>
   );
 };
@@ -167,3 +191,8 @@ const iconStyle = {
   color: 'white',
   hoverColor: 'white',
 };
+
+const Spacer = styled.div`
+  height: ${props => (props.isVisible ? '300px' : '0px')};
+  transition: height 1s ease-in-out;
+`;

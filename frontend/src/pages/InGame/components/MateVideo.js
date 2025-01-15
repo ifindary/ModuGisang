@@ -25,7 +25,14 @@ const MateVideo = ({ mateId, mateName, onClick }) => {
     const response = await fetchData(() =>
       userServices.getUserInfo({ accessToken, userId }),
     );
-    setMateData(response.data);
+    const { isLoading, data, error } = response;
+    if (!isLoading && data) {
+      setMateData(data);
+    }
+    if (error) {
+      console.error(error);
+      setMateData(null);
+    }
   };
 
   useEffect(() => {

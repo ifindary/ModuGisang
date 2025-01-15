@@ -107,6 +107,7 @@ const Wrapper = styled.div`
 `;
 
 const Header = styled.div`
+  width: 100%;
   padding: 12px;
   align-self: center;
   justify-self: center;
@@ -129,6 +130,7 @@ const Header = styled.div`
 `;
 
 const Footer = styled.div`
+  width: 100%;
   padding: 12px;
   align-self: center;
   justify-self: center;

@@ -5,6 +5,7 @@ import {
   GameContext,
   OpenViduContext,
   UserContext,
+  SafeAreaContext,
 } from '../../../contexts';
 import useFetch from '../../../hooks/useFetch';
 import { inGameServices, userServices } from '../../../apis';
@@ -53,7 +54,8 @@ const Result = () => {
 
   const [isVideoLoading, setIsVideoLoading] = useState(true);
 
-  const [platform, setPlatform] = useState('web');
+  const { platform, isSmallModel, getGridStyles, getPadding } =
+    useContext(SafeAreaContext);
 
   const getGameResults = async () => {
     const response = await fetchData(() =>
@@ -73,8 +75,14 @@ const Result = () => {
     const response = await fetchData(() =>
       userServices.getUserInfo({ accessToken, userId: theTopUserId }),
     );
-
-    setTheTopUserData(response.data);
+    const { isLoading, data, error } = response;
+    if (!isLoading && data) {
+      setTheTopUserData(data);
+    }
+    if (error) {
+      console.error(error);
+      setTheTopUserData(null);
+    }
   };
 
   useEffect(() => {
@@ -147,13 +155,15 @@ const Result = () => {
     fireworks();
   }, []);
 
-  useEffect(() => {
-    setPlatform(Capacitor.getPlatform());
-  }, []);
-
   return (
     <>
-      <Wrapper $platform={platform} $hasRest={theRestUsersStream?.length > 0}>
+      <Wrapper
+        $platform={platform}
+        $hasRest={theRestUsersStream?.length > 0}
+        $isSmallModel={isSmallModel}
+        getGridStyles={getGridStyles}
+        getPadding={getPadding}
+      >
         <UpperArea>
           {(!theTopUserData || !theRestUsersStream) && (
             <LoadingWithText loadingMSG="결과를 불러오는 중입니다" />
@@ -204,14 +214,14 @@ const Result = () => {
               gameResults?.map(({ userName, score }, idx) => (
                 <RankingWrapper key={idx}>
                   <ScoreLine
-                    $scoreWidth={score < 31 ? 31 : score}
+                    $scoreWidth={score < 35 ? 35 : score}
                     $isTheTop={idx === 0}
                   >
                     <RangkingAndScore>
                       <RankingNum>{idx + 1}</RankingNum>
                       <Score>{score}점</Score>
                     </RangkingAndScore>
-                    {score >= 60 && (
+                    {score >= 65 && (
                       <AllInLine>
                         <UserName>{userName}</UserName>
                         <UserProfile
@@ -219,7 +229,7 @@ const Result = () => {
                         />
                       </AllInLine>
                     )}
-                    {score < 60 && score >= 41 && (
+                    {score < 65 && score >= 41 && (
                       <ProfileInLine $scoreWidth={score}>
                         <UserProfile
                           $profileInline={true}
@@ -232,7 +242,7 @@ const Result = () => {
                   {score < 41 && (
                     <ProfileOutLine
                       $profileInline={false}
-                      $scoreWidth={score < 31 ? 31 : score}
+                      $scoreWidth={score < 35 ? 35 : score}
                     >
                       <UserProfile
                         $profileInline={false}
@@ -263,30 +273,15 @@ export default Result;
 
 const Wrapper = styled.div`
   width: 100vw;
-  height: ${({ $platform }) => ($platform === 'ios' ? '93vh' : '100vh')};
+  height: ${({ $platform, $isSmallModel }) =>
+    $platform === 'ios' && !$isSmallModel ? '93vh' : '100vh'};
 
   overflow: hidden;
 
-  ${({ $hasRest, $platform }) => css`
-    padding: ${$hasRest
-      ? $platform === 'web'
-        ? '104px 24px 0px 24px'
-        : $platform === 'ios'
-          ? '75px 24px 0px 24px'
-          : '104px 24px 0px 24px'
-      : $platform === 'ios'
-        ? '75px 24px 30px 24px'
-        : $platform === 'web'
-          ? '104px 24px 30px 24px'
-          : '75px 24px 30px 24px'};
+  padding: ${({ $hasRest, $platform, $isSmallModel, getPadding }) =>
+    getPadding($hasRest, $platform, $isSmallModel)};
 
-    ${$hasRest &&
-    css`
-      display: grid;
-      grid-template-rows: auto 150px;
-      gap: 10px;
-    `}
-  `}
+  ${({ $hasRest, getGridStyles }) => getGridStyles($hasRest)};
 `;
 
 const UpperArea = styled.div`

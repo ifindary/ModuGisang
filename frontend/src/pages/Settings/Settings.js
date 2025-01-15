@@ -1,7 +1,8 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AccountContext, ChallengeContext, UserContext } from '../../contexts';
-import { authServices, userServices } from '../../apis';
+import { userServices } from '../../apis';
+import useAuth from '../../hooks/useAuth';
 import useFetch from '../../hooks/useFetch';
 import useNavigateWithState from '../../hooks/useNavigateWithState';
 import {
@@ -18,44 +19,32 @@ import styled from 'styled-components';
 
 const Settings = () => {
   const { fetchData } = useFetch();
+  const { handleSubmitLogout } = useAuth();
   const navigateWithState = useNavigateWithState();
   const navigate = useNavigate();
 
   const { getMyData } = useContext(UserContext);
   const user = useContext(UserContext);
-  const { challengeData } = useContext(ChallengeContext);
-  const { accessToken, setAccessToken, setUserId, userId } =
-    useContext(AccountContext);
+  const {
+    challengeData,
+    handleGiveUpBeforeChallenge,
+    isChallengeStarted,
+    handleGiveUpChallenge,
+  } = useContext(ChallengeContext);
+  const { accessToken, userId } = useContext(AccountContext);
 
   const [isLogoutLoading, setIsLogoutLoading] = useState(false);
   const [affirmation, setAffirmation] = useState('');
   const [isAbleInput, setIsAbleInput] = useState(false);
   const [isExceeded30, setIsExceeded30] = useState(false);
 
+  const hasChallenge = Number(user.challengeId) !== -1;
+  const isHost = userId === challengeData.hostId;
+
   //////////////////////////////////////////
   // const [wakeTime, setWakeTime] = useState('');
   // const [challengeId, setChallengeId] = useState('');
   //////////////////////////////////////////
-
-  const handleLogOut = async () => {
-    setIsLogoutLoading(true);
-    const response = await fetchData(() =>
-      authServices.logOutUser({ accessToken, userId }),
-    );
-    const { isLoading: isLogoutLoading, error: logoutError } = response;
-    if (!isLogoutLoading) {
-      setUserId(null);
-      setAccessToken(null);
-      setIsLogoutLoading(false);
-      localStorage.removeItem('refreshToken');
-      alert('로그아웃 되었습니다.');
-      navigate('/signIn');
-    } else if (logoutError) {
-      setIsLogoutLoading(false);
-      alert(logoutError);
-    }
-  };
-
   const handleEditBtn = () => {
     if (!isAbleInput) {
       enableInput();
@@ -94,6 +83,16 @@ const Settings = () => {
       window.location.reload();
     } else if (changeAffirmationError) {
       alert(changeAffirmationError);
+    }
+  };
+
+  const handleClick = () => {
+    if (isChallengeStarted) {
+      handleGiveUpChallenge();
+    } else if (isHost) {
+      navigate('/editChallenge');
+    } else {
+      handleGiveUpBeforeChallenge();
     }
   };
 
@@ -210,7 +209,17 @@ const Settings = () => {
         </> */}
 
         {/* <LongBtn btnName="연습 게임 진행하기" onClickHandler={handlePractice} /> */}
-
+        {hasChallenge && (
+          <ChallengeEditWrapper onClick={handleClick}>
+            {isChallengeStarted ? (
+              <Text>챌린지 포기</Text>
+            ) : isHost ? (
+              <Text>챌린지 수정</Text>
+            ) : (
+              <Text>챌린지 포기</Text>
+            )}
+          </ChallengeEditWrapper>
+        )}
         <ChangePasswordWrapper onClick={() => navigate('/changePassword')}>
           <Text>비밀번호 변경</Text>
           <Icon
@@ -223,7 +232,11 @@ const Settings = () => {
             }}
           />
         </ChangePasswordWrapper>
-        <LogoutWrapper onClick={handleLogOut}>
+        <LogoutWrapper
+          onClick={async () =>
+            await handleSubmitLogout({ setIsLogoutLoading, userId })
+          }
+        >
           <Text>로그아웃</Text>
           <Icon
             icon="logout"
@@ -297,6 +310,10 @@ const LogoutWrapper = styled.div`
 `;
 
 const ChangePasswordWrapper = styled(LogoutWrapper)`
+  border: 2px solid ${({ theme }) => theme.colors.primary.emerald};
+`;
+
+const ChallengeEditWrapper = styled(LogoutWrapper)`
   border: 2px solid ${({ theme }) => theme.colors.primary.emerald};
 `;
 

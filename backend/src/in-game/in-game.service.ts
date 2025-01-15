@@ -3,6 +3,7 @@ import RedisCacheService from 'src/redis-cache/redis-cache.service';
 import { ScoreDto } from './dto/score.dto';
 import { AttendanceService } from 'src/attendance/attendance.service';
 import { UserService } from 'src/users/users.service';
+import { ChallengesService } from 'src/challenges/challenges.service';
 const EXPIRE_TIME = 900; // redis key 만료 시간
 @Injectable()
 export class InGameService {
@@ -10,6 +11,7 @@ export class InGameService {
     private redisService: RedisCacheService,
     private attendanceService: AttendanceService,
     private userService: UserService,
+    private challengeService: ChallengesService,
   ) {}
   async recordEntryTime(userId: number): Promise<boolean> {
     const timestamp = Date.now().toString();
@@ -18,8 +20,6 @@ export class InGameService {
       timestamp,
       EXPIRE_TIME,
     );
-    console.log('@@recordEntryTime/userId', userId);
-    console.log('result:', result);
     if (result === 'OK') {
       return true;
     }
@@ -28,18 +28,9 @@ export class InGameService {
 
   async submitScore(scoreDto: ScoreDto): Promise<boolean> {
     const { userId, userName, score, challengeId } = scoreDto;
-    console.log(
-      '@@submitScore/userId,userName,score,challengeId',
-      userId,
-      userName,
-      score,
-      challengeId,
-    );
     try {
       const entryTime = await this.redisService.get(`entryTime:${userId}`);
-      console.log('@@@@entryTime:', entryTime);
       if (!entryTime) {
-        console.error(`Entry time:${userId} not found`);
         return false;
       }
       const currentTime = Date.now();
@@ -72,6 +63,10 @@ export class InGameService {
         .catch((e) => {
           console.error('Failed to set expire:', e);
         });
+      // if (this.challengeService.endChallenge(challengeId)) {
+      // completeChallenge 자체에 시간 비교 로직 존재
+      this.challengeService.completeChallenge(challengeId, userId);
+      //}
       return true;
     } catch (redisError) {
       console.error('Redis save error:', redisError);
@@ -107,7 +102,6 @@ export class InGameService {
       return await operation();
     } catch (error) {
       if (retries > 0) {
-        console.log(`Retrying operation, attempts left: ${retries}`);
         await new Promise((resolve) => setTimeout(resolve, 1000)); // 1초 대기
         return this.retryOperation(operation, retries - 1);
       }

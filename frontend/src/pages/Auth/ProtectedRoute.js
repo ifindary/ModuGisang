@@ -37,6 +37,10 @@ const ProtectedRoute = () => {
     );
   }
 
+  if (!navigator.onLine) {
+    return <Navigate to="/offline" replace />;
+  }
+
   if (!isAuthLoading && !isAuthorized) {
     return <Navigate to="/signIn" replace />;
   }

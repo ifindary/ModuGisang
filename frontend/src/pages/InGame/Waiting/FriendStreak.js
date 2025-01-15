@@ -25,13 +25,18 @@ const FriendStreak = ({ mateData, isMateDataLoading, setIsMateSelected }) => {
           <Icon icon="close" iconStyle={CLOSE_ICON_STYLE} />
         </CloseBtn>
         {isMateDataLoading && <div> 가져오는 중... </div>}
-        <UserName>{mateData.userName}</UserName>
-        <SeperateLine />
-        <StyledStreakContent
-          userData={mateData}
-          isWaitingRoom={true}
-          friendStreak
-        />
+        {!isMateDataLoading && mateData && (
+          <>
+            <UserName>{mateData.userName}</UserName>
+            <SeperateLine />
+            <StyledStreakContent
+              userData={mateData}
+              isWaitingRoom={true}
+              friendStreak
+            />
+          </>
+        )}
+        {!isMateDataLoading && !mateData && <div>데이터가 없습니다 :(</div>}
       </Box>
     </Wrapper>
   );

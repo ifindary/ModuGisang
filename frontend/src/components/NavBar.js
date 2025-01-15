@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { RoundBtn } from '../components';
-import { UserContext } from '../contexts';
-import { Capacitor } from '@capacitor/core';
+import { UserContext, SafeAreaContext } from '../contexts';
 import styled from 'styled-components';
 
 const PAGE_TYPES = [
@@ -12,6 +11,7 @@ const PAGE_TYPES = [
   'myStreak',
   'joinChallenge',
   'createChallenge',
+  'editChallenge',
   'settings',
   'changePassword',
   'privacyPolicy',
@@ -29,7 +29,7 @@ const NavBar = () => {
   const [hasRightBtn, setHasRightBtn] = useState(true);
   const [pageType, setPageType] = useState('main');
   const [scrolled, setScrolled] = useState(false);
-  const [platform, setPlatform] = useState('web');
+  const { safeAreaPadding } = useContext(SafeAreaContext);
 
   const goBack = () => {
     if (pageType === 'privacyPolicy' || pageType === 'termsOfService') {
@@ -43,6 +43,8 @@ const NavBar = () => {
         navigate('/');
       }
     } else if (pageType === 'changePassword') {
+      navigate('/settings');
+    } else if (pageType === 'editChallenge') {
       navigate('/settings');
     } else if (pageType === 'signUp' || pageType === 'forgotPassword') {
       navigate('/signIn');
@@ -80,6 +82,7 @@ const NavBar = () => {
     myStreak: '나의 기록',
     joinChallenge: '챌린지 참여',
     createChallenge: '챌린지 만들기',
+    editChallenge: '챌린지 수정',
     settings: '설정',
     changePassword: '비밀번호 변경',
     privacyPolicy: '개인정보보호방침',
@@ -128,16 +131,12 @@ const NavBar = () => {
     };
   }, []);
 
-  useEffect(() => {
-    setPlatform(Capacitor.getPlatform());
-  }, []);
-
   return (
     <Wrapper
       $hasLeftBtn={hasLeftBtn}
       $hasRightBtn={hasRightBtn}
       $scrolled={scrolled}
-      $platform={platform}
+      $safeAreaPadding={safeAreaPadding}
     >
       {hasLeftBtn && (
         <RoundBtn btnStyle={BACK_BTN_STYLE} onClickHandler={goBack} />
@@ -179,13 +178,7 @@ const Wrapper = styled.nav`
     $scrolled ? theme.colors.translucent.white : 'transparent'};
   backdrop-filter: ${({ $scrolled }) => ($scrolled ? 'blur(15px)' : 'none')};
   transition: background 0.3s ease;
-
-  padding: ${({ $platform }) =>
-    $platform === 'ios'
-      ? '72px 24px'
-      : $platform === 'web'
-        ? '0 24px'
-        : '72px 24px'};
+  padding: ${({ $safeAreaPadding }) => $safeAreaPadding};
 `;
 
 const Title = styled.header`
