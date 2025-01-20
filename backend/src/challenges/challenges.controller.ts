@@ -24,6 +24,7 @@ import { ChallengeResponseDto } from './dto/challengeResponse.dto';
 import { ChallengeResultDto } from './dto/challengeResult.dto';
 import RedisCacheService from 'src/redis-cache/redis-cache.service';
 import { EditChallengeDto } from './dto/editChallenge.dto';
+import { SendInvitationDto } from './dto/sendInvitationDto';
 
 @UseGuards(AuthenticateGuard)
 @Controller('api/challenge')
@@ -40,6 +41,12 @@ export class ChallengesController {
     return await this.challengeService.getChallengeInfo(challengeId);
   }
 
+  @Post('send-invitation')
+  async sendInvitation(@Body() sendInvitationDto: SendInvitationDto) {
+    const result =
+      await this.challengeService.sendInvitation(sendInvitationDto);
+    return result;
+  }
   @Post('create')
   async createChallenge(@Body() createChallengeDto: CreateChallengeDto) {
     if (createChallengeDto.mates.length > 4) {
@@ -54,9 +61,12 @@ export class ChallengesController {
         createChallengeDto.hostId,
         challenge._id,
       );
-
       for (const mate of createChallengeDto.mates) {
-        await this.challengeService.sendInvitation(challenge._id, mate);
+        const sendInvitationDto: SendInvitationDto = {
+          challengeId: challenge._id,
+          mateEmail: mate,
+        };
+        await this.challengeService.sendInvitation(sendInvitationDto);
       }
 
       return challenge;
@@ -181,12 +191,18 @@ export class ChallengesController {
 
   @Post('accept-invitation')
   async acceptInvitation(@Body() acceptInvitationDto: AcceptInvitationDto) {
-    const result =
-      await this.challengeService.acceptInvitation(acceptInvitationDto);
-    if (result.success === true) {
-      return 'accept';
-    } else {
-      throw new BadRequestException('챌린지 초대 승낙 실패하였습니다.');
+    try {
+      const result =
+        await this.challengeService.acceptInvitation(acceptInvitationDto);
+      if (result.success === true) {
+        return 'accept';
+      } else {
+        throw new BadRequestException('챌린지 초대 승낙 실패하였습니다.');
+      }
+    } catch (error) {
+      if (error.message === '해당 챌린지가 진행 중 입니다.') {
+        await this.challengeService.deleteInvitation(acceptInvitationDto);
+      }
     }
   }
 

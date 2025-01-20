@@ -1,12 +1,4 @@
-import {
-  IsEnum,
-  IsJSON,
-  IsNotEmpty,
-  IsString,
-  IsDate,
-  IsNumber,
-  IsArray,
-} from 'class-validator';
+import { IsEnum, IsNotEmpty, IsDate, IsNumber, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 
 // 적절한 enum 타입 정의, 예시로 몇 가지 값을 추가함

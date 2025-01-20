@@ -29,7 +29,7 @@ import { ChallengeResultDto } from './dto/challengeResult.dto';
 import RedisCacheService from 'src/redis-cache/redis-cache.service';
 import { UserService } from 'src/users/users.service';
 import { EditChallengeDto, Duration } from './dto/editChallenge.dto';
-
+import { SendInvitationDto } from './dto/sendInvitationDto';
 @Injectable()
 export class ChallengesService {
   constructor(
@@ -225,16 +225,36 @@ export class ChallengesService {
     await this.redisCacheService.del(`userInfo:${userId}`);
   }
 
-  async sendInvitation(challengeId: number, email: string): Promise<void> {
-    const user = await this.userService.findUser(email);
-    await this.invitationService.createInvitation(challengeId, user._id);
+  async sendInvitation(
+    sendInvitationDto: SendInvitationDto,
+  ): Promise<Invitations> {
+    const { challengeId, mateEmail } = sendInvitationDto;
+    const user = await this.userService.findUser(mateEmail);
+    return await this.invitationService.createInvitation(challengeId, user._id);
   }
 
   async acceptInvitation(invitation: AcceptInvitationDto) {
     const challengeId = invitation.challengeId;
     const guestId = invitation.guestId;
-    // const { challengeId, guestId } = invitation;
+
     const responseDatedate = new Date();
+
+    const currentParticipants = await this.userRepository.count({
+      where: { challengeId: challengeId },
+    });
+    const challenge = await this.challengeRepository.findOne({
+      where: { _id: challengeId },
+    });
+    if (!challenge) {
+      throw new NotFoundException('해당 챌린지가 존재하지 않습니다.');
+    }
+    if (this.validateChallengeDate(responseDatedate, challenge)) {
+      throw new BadRequestException('해당 챌린지가 진행 중 입니다.');
+    }
+    if (currentParticipants >= 4) {
+      //await this.invitaionRepository.delete({ challengeId, guestId });
+      throw new BadRequestException('챌린지 참가 인원이 초과되었습니다.');
+    }
     try {
       await Promise.all([
         this.invitaionRepository.update(
@@ -257,6 +277,9 @@ export class ChallengesService {
     } catch (e) {
       throw new Error('초대 수락을 처리하는 중에 오류가 발생했습니다.');
     }
+  }
+  async deleteInvitation(invitation: AcceptInvitationDto) {
+    await this.invitationService.deleteInvitation(invitation);
   }
 
   async getChallengeInfo(

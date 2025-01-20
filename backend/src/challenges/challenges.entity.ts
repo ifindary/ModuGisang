@@ -12,10 +12,10 @@ import {
 } from 'typeorm';
 
 @Entity()
-// @Index('UQ_host_active_challenge', ['hostId'], {
-//   unique: true,
-//   where: 'completed = false AND deleted = false',
-// }) // complete된 챌린지 또는 deleted된 챌린지는 hostId가 중복될 수 있으나, 아닌 경우는 중복이 불가하도록 unique 제약조건 추가
+@Index('UQ_host_active_challenge', ['hostId'], {
+  unique: true,
+  where: 'completed = false AND deleted = false',
+}) // complete된 챌린지 또는 deleted된 챌린지는 hostId가 중복될 수 있으나, 아닌 경우는 중복이 불가하도록 unique 제약조건 추가
 export class Challenges {
   @PrimaryGeneratedColumn()
   _id: number;

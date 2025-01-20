@@ -3,6 +3,7 @@ import { Invitations } from './invitations.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import RedisCacheService from 'src/redis-cache/redis-cache.service';
+import { AcceptInvitationDto } from '../challenges/dto/acceptInvitaion.dto';
 
 @Injectable()
 export class InvitationsService {
@@ -22,5 +23,10 @@ export class InvitationsService {
     newInvitation.sendDate = new Date();
     newInvitation.responseDate = null;
     return await this.invitationRepository.save(newInvitation);
+  }
+  async deleteInvitation(invitation: AcceptInvitationDto): Promise<void> {
+    const { challengeId, guestId } = invitation;
+    this.redisService.del(`userInfo:${guestId}`);
+    await this.invitationRepository.delete({ challengeId, guestId: guestId });
   }
 }
