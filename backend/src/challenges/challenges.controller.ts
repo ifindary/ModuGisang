@@ -42,13 +42,23 @@ export class ChallengesController {
   }
 
   @Post('send-invitation')
-  async sendInvitation(@Body() sendInvitationDto: SendInvitationDto) {
-    const result =
-      await this.challengeService.sendInvitation(sendInvitationDto);
+  async sendInvitation(
+    @Body() sendInvitationDto: SendInvitationDto,
+    @Req() req,
+  ) {
+    const userId = req.user._id;
+    const result = await this.challengeService.sendInvitation(
+      sendInvitationDto,
+      userId,
+    );
     return result;
   }
   @Post('create')
-  async createChallenge(@Body() createChallengeDto: CreateChallengeDto) {
+  async createChallenge(
+    @Body() createChallengeDto: CreateChallengeDto,
+    @Req() req,
+  ) {
+    const userId = req.user._id;
     if (createChallengeDto.mates.length > 4) {
       throw new BadRequestException('챌린지 참여 인원이 초과되었습니다.');
     }
@@ -66,7 +76,7 @@ export class ChallengesController {
           challengeId: challenge._id,
           mateEmail: mate,
         };
-        await this.challengeService.sendInvitation(sendInvitationDto);
+        await this.challengeService.sendInvitation(sendInvitationDto, userId);
       }
 
       return challenge;
@@ -202,6 +212,9 @@ export class ChallengesController {
     } catch (error) {
       if (error.message === '해당 챌린지가 진행 중 입니다.') {
         await this.challengeService.deleteInvitation(acceptInvitationDto);
+        throw new BadRequestException(
+          '이미 챌린지가 시작되어 초대를 수락할 수 없습니다.',
+        );
       }
     }
   }

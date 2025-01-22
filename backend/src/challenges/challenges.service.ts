@@ -227,10 +227,26 @@ export class ChallengesService {
 
   async sendInvitation(
     sendInvitationDto: SendInvitationDto,
+    userId: number,
   ): Promise<Invitations> {
     const { challengeId, mateEmail } = sendInvitationDto;
     const user = await this.userService.findUser(mateEmail);
-    return await this.invitationService.createInvitation(challengeId, user._id);
+
+    const availUser = await this.userService.findUser(mateEmail);
+    if (availUser._id !== userId) {
+      if (availUser.challengeId > 0) {
+        throw new BadRequestException(
+          '이미 다른 챌린지에 참가 중인 사용자입니다.',
+        );
+      } else {
+        return await this.invitationService.createInvitation(
+          challengeId,
+          user._id,
+        );
+      }
+    } else {
+      throw new BadRequestException('본인은 초대할 수 없습니다.');
+    }
   }
 
   async acceptInvitation(invitation: AcceptInvitationDto) {
