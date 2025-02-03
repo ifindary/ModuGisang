@@ -552,6 +552,8 @@ export class ChallengesService {
         userId,
         this.userService.decideMedalType(threshold),
       );
+    } else {
+      console.log('not enough qualifiedDaysCount...');
     }
     return true;
   }
