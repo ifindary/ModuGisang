@@ -57,15 +57,27 @@ const JoinChallenge = () => {
       return;
     }
 
-    handleAcceptInvitation({
+    const response = await handleAcceptInvitation({
       accessToken,
       challengeId: invitations[currentIdx].challengeId,
       userId,
       setIsAcceptInviLoading,
     });
-    alert(`${invitations[currentIdx].userName}의 챌린지에 참여했습니다.`);
+
+    const {
+      isLoading: isAcceptInviLoading,
+      data: acceptInviData,
+      error: acceptInviError,
+    } = response;
+
+    if (!isAcceptInviLoading && acceptInviData) {
+      alert(`${invitations[currentIdx].userName}의 챌린지에 참여했습니다.`);
+      // navigate('/main');
+    } else if (!isAcceptInviLoading && acceptInviError) {
+      alert(acceptInviError);
+      // setIsAcceptInviLoading(false);
+    }
     getInvitations();
-    navigate('/main');
   };
 
   useEffect(() => {

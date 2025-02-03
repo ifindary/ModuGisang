@@ -190,9 +190,9 @@ const ChallengeContextProvider = ({ children }) => {
     if (!isAcceptInviLoading && acceptInviData) {
       setIsAcceptInviLoading(false);
     } else if (!isAcceptInviLoading && acceptInviError) {
-      console.error(acceptInviError);
       setIsAcceptInviLoading(false);
     }
+    return response;
   };
 
   const getTodayChallengeData = async () => {

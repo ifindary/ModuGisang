@@ -133,6 +133,22 @@ const addMatesToChallenge = async ({ accessToken, challengeId, mates }) => {
   return await API.post(url, mates, config);
 };
 
+const sendInvitationToMates = async ({
+  accessToken,
+  challengeId,
+  mateEmail,
+}) => {
+  const url = `/challenge/send-invitation`;
+  const config = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  };
+  const payload = {
+    challengeId: challengeId,
+    mateEmail: mateEmail,
+  };
+  return await API.post(url, payload, config);
+};
+
 const getCalendarInfo = async ({ accessToken, userId, month }) => {
   const url = `/challenge/calendar/${userId}/${month}`;
   const config = {
@@ -173,4 +189,5 @@ export const challengeServices = {
   giveupChallenge,
   giveupBeforeChallenge,
   addMatesToChallenge,
+  sendInvitationToMates,
 };
