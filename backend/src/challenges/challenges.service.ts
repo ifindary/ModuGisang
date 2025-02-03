@@ -502,12 +502,16 @@ export class ChallengesService {
     challengeId: number,
     userId: number,
   ): Promise<boolean> {
-    let challenge = await this.redisCheckChallenge(challengeId);
-    if (!challenge) {
-      challenge = await this.challengeRepository.findOne({
-        where: { _id: challengeId },
-      });
-    }
+    // let challenge = await this.redisCheckChallenge(challengeId);
+    // if (!challenge) {
+    //   challenge = await this.challengeRepository.findOne({
+    //     where: { _id: challengeId },
+    //   });
+    // }
+    // 캐시 받아 올시 save시 새로운 객체로 인식하여 중복키 문제 발생
+    const challenge = await this.challengeRepository.findOne({
+      where: { _id: challengeId },
+    });
     if (!challenge) {
       throw new NotFoundException(`해당 챌린지를 찾을 수 없습니다.`);
     }
@@ -522,6 +526,7 @@ export class ChallengesService {
       challenge.completed = true;
       await this.redisCacheService.del(`challenge_${challengeId}`);
       await this.challengeRepository.save(challenge);
+      console.log('sucess completeChallenge...');
     } else {
       // 늦게 들어온 사람의 경우 이미 completed 되어있지만, 개인 정보는 바꿔줘야 하므로 에러 발생하면 안 됨.
       // throw new BadRequestException(
@@ -529,6 +534,7 @@ export class ChallengesService {
       // );
     }
     await this.userService.resetChallenge(userId); // 2.user 챌린지 정보 초기화 (challengeId = -1, openviduToekn = null )
+    console.log('sucess resetChallenge...');
     // 3. 메달처리
     // 기간별로 90%이상 80점 이상 달성시 메달 획득 금 100 은 30 동 7
     const qualifiedDaysCount = await this.attendanceRepository.count({

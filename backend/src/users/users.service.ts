@@ -369,6 +369,7 @@ export class UserService {
     // 업데이트된 유저 정보를 저장합니다.
     // redis에 저장된 user 정보 삭제
     await this.redisService.del(`userInfo:${userId}`);
+    console.log('medal update', medalType);
     return await this.userRepository.save(user);
   }
 
